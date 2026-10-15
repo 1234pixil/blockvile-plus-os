@@ -1,4 +1,4 @@
-# Blockvile Plus OS 3.1
+# Blockvile Plus OS 3.2
 
 A HyperOS-style operating system that runs in any modern browser. It has Phone, Tablet and Laptop modes, 22 apps, a real file system and a terminal, and it works offline.
 
@@ -31,7 +31,14 @@ A HyperOS-style operating system that runs in any modern browser. It has Phone, 
   - Tabs for For you, Top charts (ranked by what you open most), Categories and Library, plus search.
   - App detail pages show size, permissions and features, with an install progress bar and an "installed" notification.
   - Install extra apps: **2048**, **Tic-Tac-Toe** (with an unbeatable AI) and **Converter**.
-  - **Add any website as an app** from the Library tab.
+  - **Android tab** for getting real Android apps through Google Play:
+    - There's no public Google Play API for installing apps, so **Get** opens the app's real Play Store page.
+      - On an **Android phone**, it opens the Play Store app.
+      - On a computer, it opens play.google.com, where you can install the app to your phone while signed in.
+    - Search Google Play, or paste a Play link or package name (e.g. `com.duolingo`).
+    - Popular apps that have a web version can be added to your home screen with **＋ Web**. These open in a new browser tab.
+    - Android apps themselves can't run inside Blockvile, because it's a web OS.
+  - **Add any website as an app** from the Library tab. Tick “Open in a new browser tab” for sites that block being shown inside apps.
   - Right-click (or long-press) any app to pin it to the dock or uninstall it.
 - **Cloud Music:** stream SoundCloud tracks, playlists and artists with SoundCloud's official player.
   - Paste a link to play it, then save it to your library and skip back and forth through it.
