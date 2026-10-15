@@ -25,6 +25,10 @@
   };
   const state = Object.assign({}, defaults, store.get("state", {}));
   state.flags = Object.assign({}, state.flags);
+  // Apps marked defaultOff start uninstalled (only the first time the OS sees them)
+  const applyDefaultOff = () => { state.known = state.known || [];
+  APPS.forEach(a => { if (!state.known.includes(a.id)) { state.known.push(a.id); if (a.defaultOff && !state.removed.includes(a.id)) state.removed.push(a.id); } }); };
+  applyDefaultOff();
   const save = () => store.set("state", state);
   const bootTime = Date.now();
 
@@ -127,6 +131,8 @@
   /* ================= Apps registry / install / dock ================= */
   const appById = id => APPS.find(a => a.id === id);
   const installed = () => APPS.filter(a => !state.removed.includes(a.id) && !a.hidden);
+  function registerApp(app) { if (!appById(app.id)) APPS.push(app); state.removed = state.removed.filter(x => x !== app.id); if (!state.known.includes(app.id)) state.known.push(app.id); save(); renderAll(); }
+  function unregisterApp(id) { close(id, true); const i = APPS.findIndex(a => a.id === id); if (i >= 0) APPS.splice(i, 1); state.dock = state.dock.filter(x => x !== id); save(); renderAll(); }
   function install(id, on) {
     const a = appById(id); if (!a || a.system) return;
     state.removed = state.removed.filter(x => x !== id);
@@ -176,6 +182,7 @@
   }
   function open(id, args) {
     const a = appById(id); if (!a || state.removed.includes(id)) return;
+    if (!wins.has(id)) { const o = store.get("opens", {}); o[id] = (o[id] || 0) + 1; store.set("opens", o); }
     if (state.flags.airplane && a.net) toast("✈ Airplane mode is on — this app needs internet");
     closeOverlays();
     if (wins.has(id)) {
@@ -528,12 +535,13 @@
   /* ================= Public API for apps ================= */
   async function reset() {
     BV.store.clearAll(); await idb.clear(); fs.reset();
-    Object.assign(state, JSON.parse(JSON.stringify(defaults))); notifs = [];
+    Object.assign(state, JSON.parse(JSON.stringify(defaults))); state.known = []; applyDefaultOff(); save(); notifs = [];
     apply(); loadWallImg(); renderNotifs(); renderAll(); toast("Settings reset");
   }
   const api = {
     state, store, fs, idb, save, apply, setMode, setWall, setWallpaperBlob, toggleDark, toggleExit, setFlag, power, lock,
     open, close, setTitle, notify, toast, reset, install, pin, apps: () => APPS, installed, isInstalled: id => !state.removed.includes(id),
+    refreshApps: () => renderAll(), registerApp, unregisterApp,
     running: () => [...wins.entries()].map(([id, w]) => ({ id, app: appById(id), started: w.started })), bootTime,
     weather, wxInfo, setVolume, setBrightness, showHelp, spotlight, ACCENTS, beep,
     onBack(id, fn) { const w = wins.get(id); if (w) w.el.__back = fn; },
