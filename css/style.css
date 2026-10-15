@@ -499,3 +499,6 @@ html[data-mode="laptop"] .ps-tabs button.on,html[data-mode="tablet"] .ps-tabs bu
 /* keep app content clear of the gesture bar on phone/tablet */
 html:not([data-mode="laptop"]) .win{padding-bottom:30px}
 #navbar{pointer-events:none}#navbar button{pointer-events:auto}
+.ps-note{background:color-mix(in srgb,var(--accent) 10%,var(--bg));border-radius:18px;padding:14px 16px;margin-top:4px}
+.ps-note p{font-size:13px;line-height:1.5;margin-top:4px;color:var(--fg-2)}
+html[data-mode="phone"]:not(.f-landscape) .ps-row .ps-btn{padding:7px 11px}
