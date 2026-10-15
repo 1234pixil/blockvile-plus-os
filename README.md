@@ -1,4 +1,4 @@
-# Blockvile Plus OS 3.0
+# Blockvile Plus OS 3.1
 
 A HyperOS-style operating system that runs in any modern browser. It has Phone, Tablet and Laptop modes, 22 apps, a real file system and a terminal, and it works offline.
 
@@ -27,7 +27,15 @@ A HyperOS-style operating system that runs in any modern browser. It has Phone, 
 - **Storage:**
   - Files, notes, contacts and so on are saved in your browser's storage.
   - Photos, music and recordings are kept in your browser's database.
-- **App Store:** install and uninstall apps. You can also right-click (or long-press) an app to pin it to the dock or uninstall it.
+- **Blockvile Store** (Play-Store-style):
+  - Tabs for For you, Top charts (ranked by what you open most), Categories and Library, plus search.
+  - App detail pages show size, permissions and features, with an install progress bar and an "installed" notification.
+  - Install extra apps: **2048**, **Tic-Tac-Toe** (with an unbeatable AI) and **Converter**.
+  - **Add any website as an app** from the Library tab.
+  - Right-click (or long-press) any app to pin it to the dock or uninstall it.
+- **Cloud Music:** stream SoundCloud tracks, playlists and artists with SoundCloud's official player.
+  - Paste a link to play it, then save it to your library and skip back and forth through it.
+  - Discover searches SoundCloud in a new tab. Copy any link from there and paste it back to play.
 
 ## Apps
 | | |
@@ -35,9 +43,10 @@ A HyperOS-style operating system that runs in any modern browser. It has Phone, 
 | System | Settings, Files, Terminal, Text Editor, App Store, Task Manager, About |
 | Productivity | Notes, Calculator, Clock (world clock, alarms, stopwatch, timer), Calendar (with event alerts), Reminders |
 | Communication | Phone (keypad, recents, contacts — calls go to your device's dialer) |
-| Media | Gallery, Camera, Music player, Voice Recorder, Paint |
+| Media | Gallery, Camera, Music player, Cloud Music (SoundCloud), Voice Recorder, Paint |
 | Internet | Browser, Maps (OpenStreetMap), Weather (live, Open-Meteo) |
-| Games | Snake |
+| Games | Snake, plus 2048 and Tic-Tac-Toe from the Store |
+| Tools | Converter (from the Store), any website you add as a web app |
 
 Terminal commands: `help`, `ls`, `cd`, `cat`, `mkdir`, `touch`, `rm`, `mv`, `cp`, `echo > file`, `edit`, `open`, `apps`, `theme`, `mode`, `calc`, `notify`, `weather`, `neofetch`, `history`, `lock`, `reboot`, `shutdown`, `exit`.
 
@@ -81,6 +90,7 @@ js/lib.js         storage, file system, helpers
 js/os.js          the shell: modes, windows, search, notifications, lock, power, shortcuts
 js/apps.js        system & productivity apps
 js/apps-media.js  media, internet & game apps
+js/apps-store.js  Blockvile Store, Cloud Music, web apps, 2048, Tic-Tac-Toe, Converter
 sw.js             offline cache    manifest.json   install-as-app
 ```
 
@@ -90,4 +100,5 @@ This is a web-based OS, so it runs inside a browser:
 - Wi-Fi and Bluetooth toggles are visual only.
 - Alarms only ring while the page is open.
 - Some websites refuse to load inside the built-in Browser. Use the ↗ button to open them in your real browser.
+- Cloud Music needs internet. Searching happens on SoundCloud's website, because searching inside the app would need a SoundCloud developer key.
 - The PIN only protects the OS screen. It is not strong security.
