@@ -7,7 +7,8 @@
 
   /* ================= Web apps (any website added from the Store) ================= */
   const webApp = w => ({
-    id: w.id, name: w.name, icon: w.icon || "🌐", bg: w.bg || "linear-gradient(135deg,#64748b,#334155)", cat: "Web apps", web: true, net: true, url: w.url,
+    id: w.id, name: w.name, icon: w.icon || "🌐", bg: w.bg || "linear-gradient(135deg,#64748b,#334155)", cat: "Web apps", web: true, net: true, url: w.url, external: !!w.external,
+    launch: w.external ? () => window.open(w.url, "_blank", "noopener") : undefined,
     render(body) {
       body.style.padding = "0";
       body.innerHTML = `<div class="toolbar" style="padding:8px 10px;margin:0;border-bottom:1px solid var(--line)"><small class="muted" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(w.url)}</small>
@@ -25,7 +26,7 @@
     files: ["Your folders and documents", "Browse, create, rename and delete files and folders, and upload from your device.", ["Folders & breadcrumbs", "Upload files", "Opens files in Text Editor"]],
     editor: ["Write and edit text files", "A clean editor for notes, code and documents saved in Files.", ["Ctrl+S to save", "Word count", "Tab indents"]],
     terminal: ["A real command line", "Navigate the file system, write files, open apps and change settings with commands.", ["ls, cd, cat, mkdir, mv, cp", "Command history & Tab completion", "neofetch"]],
-    store: ["Get apps for Blockvile Plus", "Discover, install and manage apps, and add any website as an app.", ["Install with one tap", "Your most-used apps", "Web apps"]],
+    store: ["Get apps for Blockvile Plus", "Discover, install and manage apps, add any website as an app, and send Android apps to the real Google Play Store.", ["Install with one tap", "Your most-used apps", "Web apps"]],
     taskmgr: ["See what's running", "Running apps, uptime, memory and storage at a glance.", ["End tasks", "Live stats"]],
     notes: ["Quick notes, saved automatically", "Write many notes, search them, and save any note to Files.", ["Auto-save", "Search", "Export to Files"]],
     calculator: ["Everyday maths", "A clean calculator with keyboard support.", ["Keyboard input", "Percent & sign"]],
@@ -51,6 +52,38 @@
   const PERMS = { camera: ["📷 Camera"], recorder: ["🎙 Microphone"], weather: ["🌐 Internet", "📍 Location"], maps: ["🌐 Internet", "📍 Location"], browser: ["🌐 Internet"], cloudmusic: ["🌐 Internet"], phone: ["📞 Phone dialer"], gallery: ["🖼 Photos"], music: ["🎵 Media"] };
   const sizeOf = a => { const n = (a.render?.toString().length || 2000) * 1.6; return n < 1024 * 1024 ? (n / 1024).toFixed(0) + " KB" : (n / 1048576).toFixed(1) + " MB"; };
   const CAT_IC = { System: "⚙️", Productivity: "📋", Communication: "💬", Media: "🎬", "Music & audio": "🎧", Internet: "🌐", Games: "🎮", Tools: "🧰", "Web apps": "🔗" };
+
+  /* ================= Google Play hand-off =================
+     There is no public Google Play API for installing apps, so the Store hands installs to the
+     real Play Store: on Android the Play page opens the Play Store app; elsewhere it opens play.google.com. */
+  const IS_ANDROID = /Android/i.test(navigator.userAgent);
+  const PLAY_APP = id => `https://play.google.com/store/apps/details?id=${encodeURIComponent(id)}`;
+  const PLAY_SEARCH = q => `https://play.google.com/store/search?q=${encodeURIComponent(q)}&c=apps`;
+  const CAT_BG = { Social: "linear-gradient(135deg,#ec4899,#8b5cf6)", "Music & video": "linear-gradient(135deg,#ef4444,#f97316)", Games: "linear-gradient(135deg,#22c55e,#0ea5e9)", "Learning & tools": "linear-gradient(135deg,#0ea5e9,#6366f1)" };
+  // [package, name, category, icon, web version]
+  const ANDROID_APPS = [
+    ["com.whatsapp", "WhatsApp", "Social", "💬", "https://web.whatsapp.com"],
+    ["com.instagram.android", "Instagram", "Social", "📸", "https://www.instagram.com"],
+    ["com.snapchat.android", "Snapchat", "Social", "👻", "https://web.snapchat.com"],
+    ["com.discord", "Discord", "Social", "🎮", "https://discord.com/app"],
+    ["com.zhiliaoapp.musically", "TikTok", "Social", "🎵", "https://www.tiktok.com"],
+    ["com.spotify.music", "Spotify", "Music & video", "🎧", "https://open.spotify.com"],
+    ["com.soundcloud.android", "SoundCloud", "Music & video", "☁️", "https://soundcloud.com"],
+    ["com.google.android.youtube", "YouTube", "Music & video", "▶️", "https://www.youtube.com"],
+    ["com.netflix.mediaclient", "Netflix", "Music & video", "🎬", "https://www.netflix.com"],
+    ["com.roblox.client", "Roblox", "Games", "🧱", "https://www.roblox.com"],
+    ["com.mojang.minecraftpe", "Minecraft", "Games", "⛏", ""],
+    ["com.king.candycrushsaga", "Candy Crush Saga", "Games", "🍬", ""],
+    ["com.supercell.clashofclans", "Clash of Clans", "Games", "🏰", ""],
+    ["com.duolingo", "Duolingo", "Learning & tools", "🦉", "https://www.duolingo.com"],
+    ["com.google.android.apps.maps", "Google Maps", "Learning & tools", "🗺", "https://www.google.com/maps"],
+    ["com.google.android.apps.translate", "Google Translate", "Learning & tools", "🌍", "https://translate.google.com"],
+  ];
+  function openPlay(pkg) {
+    const name = ANDROID_APPS.find(a => a[0] === pkg)?.[1];
+    store.set("playSent", [{ pkg, name, t: Date.now() }, ...store.get("playSent", []).filter(x => x.pkg !== pkg)].slice(0, 20));
+    window.open(PLAY_APP(pkg), "_blank", "noopener");
+  }
 
   /* ================= Blockvile Store (Play-Store-style) ================= */
   A.push({
@@ -93,10 +126,26 @@
           if (cat) return `<div class="ps-sec"><button class="btn ghost" data-cat="">‹ All categories</button><h3 style="margin-top:12px">${CAT_IC[cat] || "📦"} ${cat}</h3>${all().filter(a => a.cat === cat).map(a => row(a)).join("")}</div>`;
           return `<div class="ps-sec"><h3>Categories</h3><div class="ps-cats">${cats.map(c => `<button data-cat="${c}"><span>${CAT_IC[c] || "📦"}</span>${c}<small>${all().filter(a => a.cat === c).length} apps</small></button>`).join("")}</div></div>`;
         },
+        android() {
+          const sent = store.get("playSent", []);
+          const groups = [...new Set(ANDROID_APPS.map(a => a[2]))];
+          const arow = a => { const [pkg, name, c, ic, web] = a;
+            return `<div class="ps-row"><i class="app-ic" style="background:${CAT_BG[c] || "#64748b"}">${ic}</i><div><b>${esc(name)}</b><small>${c} · ${pkg}</small></div>
+              ${web ? `<button class="ps-btn ghost" data-shortcut="${pkg}" title="Add the web version to your home screen">＋ Web</button>` : ""}<button class="ps-btn" data-playget="${pkg}">Get ↗</button></div>`; };
+          return `<div class="ps-note"><b>🤖 Android apps from Google Play</b><p>${IS_ANDROID
+              ? "You're on Android: <b>Get</b> opens the app's page in the Play Store so you can install it on this phone."
+              : "<b>Get</b> opens the app's Google Play page. Signed in to Google Play, you can install it straight to your Android phone from there."}
+              Android apps can't run inside Blockvile itself — but many have web versions you can add as Blockvile apps.</p></div>
+            <div class="ps-sec"><h3>Search Google Play</h3><div class="toolbar"><input class="field" data-play placeholder="App name, Play link, or package (com.example.app)" style="flex:1;min-width:180px"><button class="btn" data-playgo>Go ↗</button></div></div>
+            ${sent.length ? `<div class="ps-sec"><h3>🕘 Recently sent to Play</h3>${sent.slice(0, 5).map(x => `<div class="ps-row"><i class="app-ic" style="background:#64748b">📦</i><div><b>${esc(x.name || x.pkg)}</b><small>${esc(x.pkg)}</small></div><button class="ps-btn ghost" data-playget="${esc(x.pkg)}">Open ↗</button></div>`).join("")}</div>` : ""}
+            ${groups.map(g => `<div class="ps-sec"><h3>${g}</h3>${ANDROID_APPS.filter(a => a[2] === g).map(arow).join("")}</div>`).join("")}
+            <p class="muted" style="font-size:11px;margin-top:14px">App names belong to their owners. Blockvile isn't affiliated with Google Play or these apps.</p>`;
+        },
         lib() {
           const inst = all().filter(a => os.isInstalled(a.id)), webs = store.get("webapps", []);
           return `<div class="ps-sec"><h3>➕ Add a website as an app</h3>
               <div class="toolbar"><input class="field" data-wname placeholder="Name" style="flex:1;min-width:110px"><input class="field" data-wurl placeholder="https://…" style="flex:2;min-width:160px"><input class="field" data-wicon placeholder="Emoji" maxlength="2" style="width:70px"><button class="btn" data-addweb>Add</button></div>
+              <label class="row" style="font-size:13px;margin-bottom:6px"><input type="checkbox" data-wext> Open in a new browser tab (for sites like YouTube that block apps)</label>
               <p class="muted" style="font-size:11px;margin-top:-4px">Some sites block being shown inside apps. Those still open with “↗ Open in browser”.</p></div>
             <div class="ps-sec"><h3>📦 Installed (${inst.length})</h3>${inst.map(a => `<div class="ps-row" data-detail="${a.id}"><i class="app-ic" style="background:${a.bg}">${a.icon}</i><div><b>${esc(a.name)}</b><small>${a.system ? "System app" : a.web ? "Web app" : a.cat} · ${sizeOf(a)}</small></div>
               <button class="ps-btn ghost" data-openapp="${a.id}">Open</button>${a.system ? "" : `<button class="ps-btn ghost" data-uninstall="${a.id}">${a.web ? "Remove" : "Uninstall"}</button>`}</div>`).join("")}</div>
@@ -105,7 +154,8 @@
         search() {
           const ql = q.toLowerCase();
           const r = all().filter(a => a.name.toLowerCase().includes(ql) || (a.keywords || "").includes(ql) || (a.cat || "").toLowerCase().includes(ql) || meta(a)[1].toLowerCase().includes(ql));
-          return `<div class="ps-sec"><h3>Results for “${esc(q)}”</h3>${r.map(a => row(a)).join("") || `<p class="muted">No apps found. Try “game”, “music” or “photo”.</p>`}</div>`;
+          return `<div class="ps-sec"><h3>Results for “${esc(q)}”</h3>${r.map(a => row(a)).join("") || `<p class="muted">No Blockvile apps found. Try “game”, “music” or “photo”.</p>`}
+            <div class="ps-row" data-playsearch="${esc(q)}"><i class="app-ic" style="background:linear-gradient(135deg,#34d399,#2563eb)">🤖</i><div><b>Search Android apps for “${esc(q)}”</b><small>Opens Google Play</small></div><span class="ps-btn ghost">↗</span></div></div>`;
         },
       };
       const detailView = a => {
@@ -122,7 +172,7 @@
       };
       const draw = () => {
         const sc = body.querySelector(".ps-main")?.scrollTop || 0;
-        const tabsHtml = [["home", "🏠", "For you"], ["top", "🏆", "Top charts"], ["cats", "🗂", "Categories"], ["lib", "📦", "Library"]].map(([k, i, l]) => `<button data-tab="${k}" class="${tab === k && !detail && !q ? "on" : ""}"><span>${i}</span>${l}</button>`).join("");
+        const tabsHtml = [["home", "🏠", "For you"], ["top", "🏆", "Top charts"], ["cats", "🗂", "Categories"], ["android", "🤖", "Android"], ["lib", "📦", "Library"]].map(([k, i, l]) => `<button data-tab="${k}" class="${tab === k && !detail && !q ? "on" : ""}"><span>${i}</span>${l}</button>`).join("");
         const content = detail ? detailView(os.apps().find(a => a.id === detail) || all()[0]) : q ? views.search() : views[tab]();
         body.innerHTML = `<div class="ps"><div class="ps-top"><div class="ps-search">⌕<input data-q placeholder="Search apps & games" value="${esc(q)}" aria-label="Search apps">${q ? `<button data-clear>✕</button>` : ""}</div></div>
           <div class="ps-main">${content}</div><nav class="ps-tabs">${tabsHtml}</nav></div>`;
@@ -150,17 +200,31 @@
           return draw(); }
         const c = e.target.closest("[data-cat]"); if (c) { cat = c.dataset.cat || null; return draw(); }
         if (e.target.closest("[data-back]")) { detail = null; return draw(); }
+        const pg = e.target.closest("[data-playget]"); if (pg) { e.stopPropagation(); return openPlay(pg.dataset.playget); }
+        const ps = e.target.closest("[data-playsearch]"); if (ps) return window.open(PLAY_SEARCH(ps.dataset.playsearch), "_blank", "noopener");
+        if (e.target.closest("[data-playgo]")) {
+          const v = body.querySelector("[data-play]").value.trim(); if (!v) return;
+          const m = v.match(/[?&]id=([\w.]+)/), pkg = m ? m[1] : /^[a-zA-Z]\w*(\.\w+)+$/.test(v) ? v : null;
+          return pkg ? openPlay(pkg) : window.open(PLAY_SEARCH(v), "_blank", "noopener");
+        }
+        const sc = e.target.closest("[data-shortcut]"); if (sc) {
+          const a = ANDROID_APPS.find(x => x[0] === sc.dataset.shortcut); if (!a) return;
+          if (store.get("webapps", []).some(w => w.url === a[4])) return os.toast(a[1] + " is already on your home screen");
+          const w = { id: "web-" + Date.now().toString(36), name: a[1], url: a[4], icon: a[3], external: true, bg: CAT_BG[a[2]] };
+          store.set("webapps", [...store.get("webapps", []), w]); os.registerApp(webApp(w)); os.toast("✅ " + a[1] + " (web) added to your home screen"); return draw();
+        }
         if (e.target.closest("[data-addweb]")) {
           const name = body.querySelector("[data-wname]").value.trim(); let url = body.querySelector("[data-wurl]").value.trim(); const icon = body.querySelector("[data-wicon]").value.trim() || "🌐";
           if (!name || !url) return os.toast("Add a name and a web address");
           if (!/^https?:\/\//i.test(url)) url = "https://" + url;
           try { new URL(url); } catch { return os.toast("That web address doesn't look right"); }
           const hue = [...name].reduce((h, ch) => h + ch.charCodeAt(0), 0) % 360;
-          const w = { id: "web-" + Date.now().toString(36), name, url, icon, bg: `linear-gradient(135deg,hsl(${hue} 70% 55%),hsl(${(hue + 40) % 360} 70% 40%))` };
+          const w = { id: "web-" + Date.now().toString(36), name, url, icon, external: body.querySelector("[data-wext]").checked, bg: `linear-gradient(135deg,hsl(${hue} 70% 55%),hsl(${(hue + 40) % 360} 70% 40%))` };
           store.set("webapps", [...store.get("webapps", []), w]); os.registerApp(webApp(w)); os.toast("✅ " + name + " added to your apps"); return draw();
         }
         const d = e.target.closest("[data-detail]"); if (d) { detail = d.dataset.detail; draw(); body.querySelector(".ps-main").scrollTop = 0; }
       });
+      body.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.dataset.play !== undefined) body.querySelector("[data-playgo]").click(); });
       os.onBack("store", () => { if (detail) { detail = null; draw(); return true; } if (q) { q = ""; draw(); return true; } if (cat) { cat = null; draw(); return true; } });
       const onCh = () => { if (!body.contains(document.activeElement) || !/INPUT/.test(document.activeElement.tagName)) draw(); };
       window.addEventListener("bv:changed", onCh);
