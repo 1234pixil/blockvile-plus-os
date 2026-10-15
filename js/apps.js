@@ -302,31 +302,6 @@
     }
   });
 
-  /* ---------------- App Store ---------------- */
-  A.push({
-    id: "store", name: "App Store", icon: "🛍", bg: "linear-gradient(135deg,#2fb8ff,#2f6bff)", cat: "System", system: true, keywords: "install uninstall apps download",
-    render(body, os) {
-      let q = "";
-      const draw = () => {
-        const cats = [...new Set(os.apps().map(a => a.cat || "Other"))];
-        body.innerHTML = `<input class="field" placeholder="Search apps…" data-q value="${esc(q)}" style="margin-bottom:12px">` + cats.map(c => {
-          const apps = os.apps().filter(a => (a.cat || "Other") === c && a.name.toLowerCase().includes(q.toLowerCase())); if (!apps.length) return "";
-          return `<div class="h">${c}</div>` + apps.map(a => { const inst = os.isInstalled(a.id);
-            return `<div class="store-row"><i class="app-ic" style="background:${a.bg}">${a.icon}</i><div><b>${a.name}</b><small>${a.system ? "Built-in system app" : inst ? "Installed" : "Not installed"}</small></div>
-              ${a.system ? `<button class="btn ghost" data-open-app="${a.id}">Open</button>` : inst ? `<button class="btn ghost" data-open-app="${a.id}">Open</button><button class="btn ghost" data-rm="${a.id}">Uninstall</button>` : `<button class="btn" data-add="${a.id}">Get</button>`}</div>`; }).join("");
-        }).join("");
-        const i = body.querySelector("[data-q]"); i.oninput = () => { q = i.value; const p = i.selectionStart; draw(); const n = body.querySelector("[data-q]"); n.focus(); n.setSelectionRange(p, p); };
-      };
-      body.addEventListener("click", e => {
-        const t = e.target.closest("button"); if (!t) return;
-        if (t.dataset.add) { t.textContent = "Installing…"; setTimeout(() => { os.install(t.dataset.add, true); draw(); }, 700); }
-        if (t.dataset.rm) { os.install(t.dataset.rm, false); draw(); }
-        if (t.dataset.openApp) os.open(t.dataset.openApp);
-      });
-      draw();
-    }
-  });
-
   /* ---------------- Task manager ---------------- */
   A.push({
     id: "taskmgr", name: "Task Manager", icon: "📊", bg: "linear-gradient(135deg,#22c55e,#15803d)", cat: "System", system: true, keywords: "processes running memory activity monitor",
