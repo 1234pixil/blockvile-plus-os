@@ -1,0 +1,9 @@
+{
+  "name": "Blockvile Plus OS",
+  "short_name": "Blockvile+",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#000000",
+  "theme_color": "#0f1115",
+  "icons": [{ "src": "icons/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
