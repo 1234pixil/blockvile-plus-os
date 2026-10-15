@@ -421,3 +421,81 @@ html[data-mode="laptop"] #toast.banner.on{transform:none}
 .color-row button{width:32px;height:32px;border-radius:50%}
 .color-row button.on{outline:3px solid var(--fg);outline-offset:2px}
 .list select,.list input[type=time]{font:inherit;padding:6px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card-solid);color:var(--fg)}
+
+/* =========================================================
+   v4 — Blockvile Store, Cloud Music, extra apps
+   ========================================================= */
+.ps{display:flex;flex-direction:column;height:100%}
+.ps-top{padding:10px 14px}
+.ps-search{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:999px;padding:4px 14px;color:var(--fg-2)}
+.ps-search input{flex:1;border:0;background:transparent;font:inherit;padding:10px 0;color:var(--fg);outline:none}
+.ps-main{flex:1;overflow:auto;padding:0 14px 14px}
+.ps-tabs{display:flex;border-top:1px solid var(--line);background:var(--card-solid)}
+.ps-tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;font-size:11px;color:var(--fg-2)}
+.ps-tabs button span{font-size:18px;padding:2px 14px;border-radius:999px}
+.ps-tabs button.on{color:var(--fg);font-weight:600}.ps-tabs button.on span{background:color-mix(in srgb,var(--accent) 22%,transparent)}
+html[data-mode="laptop"] .ps-tabs,html[data-mode="tablet"] .ps-tabs{order:-1;border-top:0;border-bottom:1px solid var(--line);justify-content:center}
+html[data-mode="laptop"] .ps-tabs button,html[data-mode="tablet"] .ps-tabs button{flex:0 0 auto;flex-direction:row;font-size:13px;gap:6px;padding:10px 14px}
+html[data-mode="laptop"] .ps-tabs button span,html[data-mode="tablet"] .ps-tabs button span{font-size:14px;padding:0}
+html[data-mode="laptop"] .ps-tabs button.on,html[data-mode="tablet"] .ps-tabs button.on{border-bottom:3px solid var(--accent)}
+.ps-hero{position:relative;border-radius:24px;padding:22px;color:#fff;display:flex;align-items:center;gap:12px;cursor:pointer;overflow:hidden;margin-bottom:6px;min-height:160px}
+.ps-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.35),transparent 70%);pointer-events:none}
+.ps-hero>div{position:relative;z-index:1;flex:1}.ps-hero small{opacity:.85;letter-spacing:1px;font-size:11px}
+.ps-hero h2{font-size:26px;margin:2px 0}.ps-hero p{opacity:.9;margin-bottom:12px;font-size:14px}
+.ps-hero>span{font-size:88px;position:relative;z-index:1;filter:drop-shadow(0 6px 16px rgba(0,0,0,.3))}
+.ps-hero .ps-btn{background:#fff;color:#111}
+.ps-sec{margin-top:18px}.ps-sec h3{font-size:16px;margin-bottom:10px}
+.ps-scroll{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+.ps-card{flex:0 0 104px;display:flex;flex-direction:column;gap:3px;cursor:pointer;scroll-snap-align:start}
+.ps-card .app-ic{width:104px;height:104px;font-size:48px;border-radius:26px}
+.ps-card b{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px}
+.ps-card small{font-size:11px;color:var(--fg-2)}
+.ps-row{display:flex;align-items:center;gap:12px;padding:8px;border-radius:16px;cursor:pointer}
+.ps-row:hover{background:var(--bg)}
+.ps-row .app-ic{width:56px;height:56px;font-size:28px;border-radius:16px;flex:none}
+.ps-row>div{flex:1;min-width:0}.ps-row b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps-row small{display:block;font-size:12px;color:var(--fg-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps-rank{width:22px;text-align:center;color:var(--fg-2);font-weight:600}
+.ps-btn{background:var(--accent);color:#fff;border-radius:999px;padding:8px 18px;font-weight:600;font-size:13px;flex:none}
+.ps-btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.ps-prog{position:relative;width:96px;height:32px;border-radius:999px;background:var(--bg);overflow:hidden;flex:none}
+.ps-prog i{position:absolute;inset:0 auto 0 0;background:color-mix(in srgb,var(--accent) 40%,transparent);transition:width .12s}
+.ps-prog span{position:relative;display:grid;place-items:center;height:100%;font-size:12px;font-weight:600}
+.ps-cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ps-cats button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:16px;border-radius:18px;background:var(--bg);text-align:left;font-weight:600}
+.ps-cats span{font-size:28px}.ps-cats small{font-weight:400;color:var(--fg-2);font-size:12px}
+.ps-detail{padding-top:6px}.ps-detail h3{font-size:16px;margin:18px 0 6px}.ps-detail p{line-height:1.5}
+.ps-dhead{display:flex;gap:16px;align-items:center;margin:12px 0}
+.ps-dhead .app-ic{width:84px;height:84px;font-size:42px;border-radius:22px;flex:none}
+.ps-dhead h2{font-size:24px}.ps-dhead small{display:block;font-size:13px;color:var(--fg-2)}
+.ps-dbtns{display:flex;gap:10px;margin-bottom:14px}.ps-dbtns .ps-btn{flex:1;padding:11px}.ps-dbtns .ps-prog{flex:1;height:42px}
+.ps-info{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:16px;text-align:center;padding:10px 0}
+.ps-info div{border-right:1px solid var(--line);padding:0 4px}.ps-info div:last-child{border:0}
+.ps-info b{display:block;font-size:13px}.ps-info small{font-size:11px;color:var(--fg-2)}
+.ps-preview{margin-top:14px;border-radius:20px;height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;gap:4px}
+.ps-preview span{font-size:56px}.ps-preview small{opacity:.85}
+.ps-feats{list-style:none;display:grid;gap:6px;margin-top:8px}
+.ps-perms{display:flex;gap:8px;flex-wrap:wrap}.ps-perms span{background:var(--bg);padding:6px 12px;border-radius:999px;font-size:13px}
+
+.cm-now{margin-bottom:8px}.cm-now b{display:block;font-size:16px}.cm-now small{color:var(--fg-2)}
+.cm-frame{width:100%;height:max(260px,calc(100% - 300px));border:0;border-radius:16px;background:#111}
+.cm-empty{text-align:center;padding:30px 10px}
+.cm-add{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.cm-add .field{flex:1;min-width:160px}
+.cm-item{cursor:pointer;gap:12px;justify-content:flex-start!important}
+.cm-item.on{background:color-mix(in srgb,#ff5500 12%,transparent)}
+.cm-item img,.cm-ph{width:48px;height:48px;border-radius:10px;object-fit:cover;flex:none;display:grid;place-items:center;background:var(--line);font-size:22px}
+.cm-t{flex:1;min-width:0}.cm-t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cm-t small{color:var(--fg-2)}
+
+.g2-head{display:flex;align-items:center;gap:8px;margin-bottom:12px}.g2-head>b{font-size:32px;margin-right:auto;color:#ea580c}
+.g2-score{background:var(--bg);border-radius:10px;padding:4px 12px;font-size:11px;text-align:center;color:var(--fg-2)}.g2-score b{display:block;font-size:16px;color:var(--fg)}
+.g2-board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#bbada0;padding:8px;border-radius:14px;max-width:360px;margin:0 auto;touch-action:none}
+.g2-t{aspect-ratio:1;border-radius:8px;display:grid;place-items:center;font-weight:800;transition:background .1s}
+.ttt{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:300px;margin:0 auto}
+.ttt button{aspect-ratio:1;border-radius:16px;background:var(--bg);font-size:48px;font-weight:800}
+.ttt .x{color:var(--accent)}.ttt .o{color:#ec4899}
+.conv{display:grid;grid-template-columns:1fr 120px;gap:8px;align-items:center}
+.conv [data-swap]{grid-column:1/-1;justify-self:center}
+.conv output{display:block;font-size:20px;font-weight:600}
+/* keep app content clear of the gesture bar on phone/tablet */
+html:not([data-mode="laptop"]) .win{padding-bottom:30px}
+#navbar{pointer-events:none}#navbar button{pointer-events:auto}
