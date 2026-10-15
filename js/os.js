@@ -183,6 +183,7 @@
   function open(id, args) {
     const a = appById(id); if (!a || state.removed.includes(id)) return;
     if (!wins.has(id)) { const o = store.get("opens", {}); o[id] = (o[id] || 0) + 1; store.set("opens", o); }
+    if (a.launch) { closeOverlays(); a.launch(); return; } // shortcut apps open outside the OS
     if (state.flags.airplane && a.net) toast("✈ Airplane mode is on — this app needs internet");
     closeOverlays();
     if (wins.has(id)) {
