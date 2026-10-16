@@ -1,9 +1,26 @@
 {
+  "id": "./",
   "name": "Blockvile Plus OS",
   "short_name": "Blockvile+",
-  "start_url": "./index.html",
+  "description": "Phone, tablet and laptop modes in one home screen, with 25+ built-in apps.",
+  "start_url": "./?source=app",
+  "scope": "./",
   "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
   "background_color": "#000000",
   "theme_color": "#0f1115",
-  "icons": [{ "src": "icons/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+  "categories": ["personalization", "productivity", "utilities"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Videos", "url": "./?app=videos", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Blockvile Store", "url": "./?app=store", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Files", "url": "./?app=files", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Help", "url": "./?app=help", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
 }
