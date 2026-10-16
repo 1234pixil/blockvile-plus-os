@@ -39,7 +39,7 @@
 
   /* ---------------- Gallery ---------------- */
   A.push({
-    id: "gallery", name: "Gallery", icon: "🖼", bg: "linear-gradient(135deg,#ff6aa2,#b84dff)", cat: "Media", dock: true, keywords: "photos pictures images",
+    id: "gallery", name: "Gallery", icon: "🖼", bg: "linear-gradient(135deg,#ff6aa2,#b84dff)", cat: "Media", keywords: "photos pictures images",
     render(body, os) {
       let urls = [], items = [], idx = -1;
       const free = () => { urls.forEach(u => URL.revokeObjectURL(u)); urls = []; };
@@ -68,7 +68,7 @@
         if (a === "next") view((idx + 1) % items.length);
         if (a === "wall") os.setWallpaperBlob(it.blob);
         if (a === "dl") download(it.blob, it.name || "photo.png");
-        if (a === "del" && confirm("Delete this photo?")) { await os.idb.del("photos", it.id); await draw(); }
+        if (a === "del" && await BV.confirm("Delete this photo?", { ok: "Delete", danger: true })) { await os.idb.del("photos", it.id); await draw(); }
       });
       body.addEventListener("change", async e => { if (e.target.dataset.file === undefined) return;
         for (const f of e.target.files) await os.idb.put("photos", { name: f.name, blob: f }); draw(); });
@@ -110,7 +110,7 @@
 
   /* ---------------- Music player ---------------- */
   A.push({
-    id: "music", name: "Music", icon: "🎵", bg: "linear-gradient(135deg,#fb7185,#e11d48)", cat: "Media", dock: true, keywords: "songs audio player mp3",
+    id: "music", name: "Music", icon: "🎵", bg: "linear-gradient(135deg,#fb7185,#e11d48)", cat: "Media", keywords: "songs audio player mp3",
     render(body, os) {
       const audio = new Audio(); let list = [], i = -1, url = null, shuffle = false, repeat = false;
       audio.volume = os.state.volume / 100;
@@ -178,7 +178,7 @@
           } catch { os.toast("Microphone permission denied"); }
         }
         const dl = e.target.closest("[data-dl]"); if (dl) { const r = body._items.find(x => x.id === dl.dataset.dl); download(r.blob, r.name.replace(/[^\w\- ]/g, "_") + ".webm"); }
-        const del = e.target.closest("[data-del]"); if (del && confirm("Delete recording?")) { await os.idb.del("recordings", del.dataset.del); draw(); }
+        const del = e.target.closest("[data-del]"); if (del && await BV.confirm("Delete this recording?", { ok: "Delete", danger: true })) { await os.idb.del("recordings", del.dataset.del); draw(); }
       });
       draw();
       return () => { if (rec) rec.stop(); clearInterval(tick); urls.forEach(u => URL.revokeObjectURL(u)); };
