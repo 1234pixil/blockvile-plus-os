@@ -7,18 +7,27 @@
   <title>Blockvile Plus OS</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Blockvile+">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- ===== Host layer (shown when the OS is exited) ===== -->
+  <!-- ===== Shown after Exit: the device is yours again ===== -->
   <div id="host">
     <div class="host-card">
       <img src="icons/logo.svg" alt="" class="host-logo">
-      <h1>Blockvile Plus OS</h1>
-      <p>The OS is closed. You're back on the outside.</p>
-      <button class="host-btn" data-action="toggle-exit">Start Blockvile Plus OS</button>
-      <p class="host-hint">Shortcut: <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd></p>
+      <h1>You've left Blockvile</h1>
+      <p data-host-msg>Your browser and device are all yours again.</p>
+      <div class="host-actions">
+        <button class="host-btn" data-action="toggle-exit">▶ Back to Blockvile</button>
+        <button class="host-btn ghost" data-action="host-close">✕ Close this tab</button>
+        <button class="host-btn ghost" data-action="host-back">← Previous page</button>
+      </div>
+      <p class="host-hint" data-host-hint></p>
     </div>
   </div>
 
@@ -78,6 +87,7 @@
             <span data-dnd-ind class="ind">🌙</span>
             <span data-air-ind class="ind">✈</span>
             <button data-action="spotlight" title="Search (Ctrl+K)">⌕</button>
+            <button class="mb-exit" data-action="toggle-exit" title="Exit Blockvile (Ctrl+Shift+E)">⏻ Exit</button>
             <button data-action="open-cc" title="Control centre">☰</button>
             <span data-battery>100%</span>
             <b data-clock="mbar"></b>
@@ -87,7 +97,7 @@
         <!-- Status bar (phone/tablet) -->
         <div id="statusbar">
           <div class="sb-left" data-action="open-notif"><span data-clock="short">00:00</span><span class="sb-badges"></span></div>
-          <div class="sb-center"><span class="sb-mode" data-mode-label>Phone</span></div>
+          <div class="sb-center"><span class="sb-mode" data-mode-label>Phone</span><button class="sb-exit" data-action="toggle-exit" title="Exit Blockvile" aria-label="Exit Blockvile">⏻ Exit</button></div>
           <div class="sb-right" data-action="open-cc">
             <span data-dnd-ind class="ind">🌙</span><span data-air-ind class="ind">✈</span>
             <svg viewBox="0 0 24 24" data-sig><path d="M2 20h3v-4H2zm5 0h3v-8H7zm5 0h3V8h-3zm5 0h3V4h-3z" fill="currentColor" stroke="none"/></svg>
@@ -111,8 +121,8 @@
             <button class="glass widget search-widget" data-action="spotlight">⌕ Search apps, files, settings…</button>
           </div>
           <div id="appgrid" class="appgrid"></div>
-          <div id="dock" class="glass"></div>
         </div>
+        <div id="dock" class="glass"></div>
 
         <!-- Laptop taskbar / dock -->
         <div id="taskbar" class="glass">
@@ -193,6 +203,9 @@
           </div>
         </div>
 
+        <!-- Install on this device -->
+        <div id="installsheet" class="overlay"><div class="help-box glass" id="install-box"></div></div>
+
         <!-- Shortcut help -->
         <div id="help" class="overlay"><div class="help-box glass" id="help-box"></div></div>
 
@@ -216,10 +229,14 @@
     </div>
   </div>
 
+  <script src="js/config.js"></script>
   <script src="js/lib.js"></script>
+  <script src="js/android.js"></script>
   <script src="js/apps.js"></script>
   <script src="js/apps-media.js"></script>
   <script src="js/apps-store.js"></script>
+  <script src="js/apps-video.js"></script>
+  <script src="js/apps-help.js"></script>
   <script src="js/os.js"></script>
 </body>
 </html>
