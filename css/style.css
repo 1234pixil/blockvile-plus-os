@@ -502,3 +502,147 @@ html:not([data-mode="laptop"]) .win{padding-bottom:30px}
 .ps-note{background:color-mix(in srgb,var(--accent) 10%,var(--bg));border-radius:18px;padding:14px 16px;margin-top:4px}
 .ps-note p{font-size:13px;line-height:1.5;margin-top:4px;color:var(--fg-2)}
 html[data-mode="phone"]:not(.f-landscape) .ps-row .ps-btn{padding:7px 11px}
+
+/* =========================================================
+   v4 — Android app integration
+   ========================================================= */
+.nat-ic{width:100%;height:100%;object-fit:contain;border-radius:inherit;display:block}
+.app-ic:has(.nat-ic){box-shadow:none}
+.nat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:18px 8px}
+.nat-grid .app span{font-size:11px;max-width:78px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nat-sheet{position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.nat-sheet-box{background:var(--card-solid);width:min(420px,100%);border-radius:24px 24px 0 0;padding:18px;display:flex;flex-direction:column;gap:4px}
+.nat-sheet-box small{color:var(--fg-2);margin-bottom:8px}
+.nat-sheet-box button{text-align:left;padding:12px;border-radius:12px}
+.nat-sheet-box button:hover{background:var(--bg)}
+.nat-sheet-box .danger{color:var(--danger)}
+.win-body{position:relative}
+/* inside the Android app: keep clear of the camera cut-out / status area */
+html.is-android #quickbar{top:auto;bottom:calc(120px + var(--safe-bottom,0px));right:8px;flex-direction:column;opacity:.9}
+html.is-android #statusbar{top:var(--safe-top,0px)}
+html.is-android #home{padding-top:calc(56px + var(--safe-top,0px))}
+html.is-android:not([data-mode="laptop"]) .win{padding-top:calc(40px + var(--safe-top,0px))}
+html.is-android #navbar{bottom:var(--safe-bottom,0px)}
+html.is-android #dock{bottom:calc(34px + var(--safe-bottom,0px))}
+html.is-android .shade{padding-top:calc(52px + var(--safe-top,0px))}
+/* phone: quick buttons only on the home screen (they'd cover app buttons), dock icons shrink to fit */
+html[data-mode="phone"].has-win #quickbar{display:none}
+html[data-mode="phone"] #dock{gap:4px;padding:10px 8px}
+html[data-mode="phone"] #dock .app-ic{width:min(58px,calc((min(100vw,400px) - 90px) / var(--n,5)));height:min(58px,calc((min(100vw,400px) - 90px) / var(--n,5)));font-size:min(28px,calc((min(100vw,400px) - 90px) / var(--n,5) * .48));border-radius:30%}
+/* phone: fade the app grid out behind the dock instead of showing icons through it */
+html[data-mode="phone"] #home{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 128px),transparent calc(100% - 104px));mask-image:linear-gradient(to bottom,#000 calc(100% - 128px),transparent calc(100% - 104px))}
+#dock{z-index:2}
+#dock .app span{display:none}
+/* short screens: compact control centre so everything (incl. Exit) fits */
+@media (max-height:760px){
+  .cc-slider{min-height:96px;padding:8px 0}.cc-slider input{height:60px}
+  .cc-tile{aspect-ratio:auto;padding:9px 0}.cc-big{padding:10px 12px}
+  .cc-grid{gap:8px}.shade{padding-bottom:14px}
+}
+
+/* =========================================================
+   v5 — in-OS dialogs, Videos (YouTube), embedded mode
+   ========================================================= */
+.bv-dialog{position:absolute;inset:0;z-index:120;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.bv-dialog-box{background:var(--card-solid);color:var(--fg);border-radius:22px;padding:20px;width:min(360px,100%);box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}
+.bv-dialog-box p{font-weight:600;font-size:16px}
+.bv-dialog-btns{display:flex;gap:8px;justify-content:flex-end}
+.btn.danger{background:var(--danger)}
+.link-btn{color:var(--accent);text-decoration:underline;font-size:inherit;padding:0}
+
+.yt-player{position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#000;max-height:60vh}
+.yt-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.yt-now{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.yt-now>div{flex:1;min-width:150px}.yt-now b{display:block;font-size:16px;line-height:1.3}.yt-now small{color:var(--fg-2)}
+.yt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.yt-list-v{display:flex;flex-direction:column;gap:8px}
+.yt-list-v .yt-card{flex-direction:row;align-items:center}.yt-list-v .yt-thumb{width:140px;flex:none}
+.yt-card{position:relative;display:flex;flex-direction:column;gap:6px;cursor:pointer;border-radius:12px}
+.yt-card:hover .yt-thumb{outline:2px solid var(--accent)}
+.yt-thumb{aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:var(--bg);display:grid;place-items:center}
+.yt-thumb img{width:100%;height:100%;object-fit:cover}
+.yt-list{font-weight:600;color:var(--fg-2)}
+.yt-meta b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:13px;line-height:1.35}
+.yt-meta small{color:var(--fg-2);font-size:12px}
+.yt-x{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:12px}
+html[data-mode="phone"] .yt-grid{grid-template-columns:1fr}
+
+/* Embedded in another page: fill the frame instead of drawing a device around it */
+html.embedded #stage{padding:0}
+html.embedded[data-mode="phone"] #device,html.embedded[data-mode="tablet"] #device{width:100vw;height:100vh;padding:0;border-radius:0;box-shadow:none}
+html.embedded[data-mode="phone"] #screen,html.embedded[data-mode="tablet"] #screen{border-radius:0}
+@media (max-width:480px){html[data-mode="phone"] #quickbar{top:auto;bottom:118px;right:8px;flex-direction:column}}
+html.embedded:not([data-mode="laptop"]) #quickbar{top:auto;bottom:118px;right:8px;flex-direction:column}
+html.embedded:not([data-mode="laptop"]).has-win #quickbar{display:none}
+
+/* =========================================================
+   v6 — exit screen, install sheet, Help & Feedback
+   ========================================================= */
+.host-card h1{font-size:28px}
+.host-actions{display:flex;flex-direction:column;gap:10px;align-items:stretch;max-width:280px;margin:0 auto}
+.host-btn.ghost{background:transparent;color:#e8ebf2;border:1px solid #2a2e38}
+.host-btn.ghost:hover{background:#1b1e26}
+.host-btn[hidden]{display:none}
+.host-hint:empty{display:none}
+
+#installsheet{align-items:center}
+.inst-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.inst-head img{width:48px;height:48px}
+.inst-head div{flex:1}.inst-head small{color:var(--fg-2)}
+.inst-perks{list-style:none;display:grid;gap:8px;margin:12px 0;padding:12px 14px;background:var(--bg);border-radius:14px;font-size:14px}
+.inst-steps{margin:10px 0 10px 22px;display:grid;gap:8px;line-height:1.45}
+.inst-ic{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:6px;background:var(--bg);font-size:13px}
+.inst-btns{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.inst-btns .btn{flex:1;min-width:160px;padding:12px}
+#install-box p{line-height:1.5;margin:6px 0}
+#install-box hr{border:0;border-top:1px solid var(--line);margin:14px 0 8px}
+
+/* Help */
+.hp-search{margin-bottom:12px}
+.hp-hero{display:flex;gap:12px;align-items:center;padding:16px;border-radius:20px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 18%,var(--bg)),var(--bg));margin-bottom:14px}
+.hp-hero span{font-size:40px}.hp-hero b{display:block;font-size:17px}.hp-hero small{color:var(--fg-2)}
+.hp-quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:16px}
+.hp-quick button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px;border-radius:16px;background:var(--bg);text-align:left;font-weight:600;font-size:13px}
+.hp-quick button span{font-size:22px}.hp-quick small{font-weight:400;color:var(--fg-2);font-size:11px}
+.hp-row{display:flex;gap:12px;align-items:center;padding:12px;border-radius:14px;width:100%;text-align:left}
+.hp-row:hover{background:var(--bg)}
+.hp-row span{font-size:22px;width:32px;text-align:center}.hp-row b{display:block}.hp-row small{color:var(--fg-2);font-size:12px}
+.hp-art h2{font-size:22px;margin:10px 0}
+.hp-art p,.hp-art li{line-height:1.6}
+.hp-art ul,.hp-art ol{margin:6px 0 12px 22px;display:grid;gap:4px}
+.hp-art h4{margin:16px 0 4px}
+.hp-art .tip{background:var(--bg);border-left:4px solid var(--accent);padding:10px 12px;border-radius:10px;margin:12px 0;font-size:14px}
+.hp-art .btn{margin:4px 6px 4px 0}
+.hp-vote{display:flex;gap:8px;align-items:center;margin-top:20px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+
+/* Feedback */
+.fb-types{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.fb-types button{padding:12px 4px;border-radius:14px;background:var(--bg);display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px}
+.fb-types button span{font-size:22px}
+.fb-types button.on{background:color-mix(in srgb,var(--accent) 20%,var(--bg));outline:2px solid var(--accent)}
+.fb-stars{display:flex;gap:6px;margin:4px 0 12px}
+.fb-stars button{font-size:28px;filter:grayscale(1);opacity:.45;transition:transform .1s}
+.fb-stars button.on{filter:none;opacity:1}
+.fb-stars button:active{transform:scale(.85)}
+.fb-form label{display:block;font-size:13px;color:var(--fg-2);margin:10px 0 4px}
+.fb-form textarea{min-height:130px}
+.fb-check{display:flex;gap:8px;align-items:flex-start;margin:12px 0;font-size:13px}
+.fb-check input{margin-top:3px;accent-color:var(--accent)}
+.fb-dev{font:12px/1.5 ui-monospace,Menlo,monospace;background:var(--bg);padding:8px 10px;border-radius:10px;color:var(--fg-2);white-space:pre-wrap;margin-top:6px}
+.fb-done{text-align:center;padding:24px 10px}
+.fb-done>div:first-child{font-size:60px}
+.fb-hist{display:flex;gap:10px;align-items:center;padding:10px 12px;background:var(--bg);border-radius:12px;margin-bottom:6px}
+.fb-hist span{font-size:20px}.fb-hist div{flex:1;min-width:0}.fb-hist b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.fb-hist small{color:var(--fg-2);font-size:11px}
+.fb-tag{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--line);white-space:nowrap}
+.fb-tag.sent{background:color-mix(in srgb,#22c55e 25%,transparent)}
+.fb-tag.queued{background:color-mix(in srgb,#eab308 30%,transparent)}
+
+/* =========================================================
+   v7 — always-visible Exit, dialogs with detail text
+   ========================================================= */
+.sb-center{display:flex;align-items:center;gap:6px}
+.sb-exit,.mb-exit{font-size:11px;font-weight:700;padding:3px 9px!important;border-radius:999px!important;background:var(--danger)!important;color:#fff;line-height:1.2}
+.sb-exit:active,.mb-exit:active{transform:scale(.92)}
+.mb-exit{font-size:12px}
+.bv-dialog-text{display:block;color:var(--fg-2);font-size:13px;line-height:1.5;margin:-4px 0 12px}
