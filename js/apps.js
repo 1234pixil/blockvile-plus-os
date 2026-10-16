@@ -20,6 +20,15 @@
         <div class="h" id="sec-account">Account</div>
         <div class="list"><div><span>Name</span><input class="field" data-in="username" value="${esc(s.username)}" style="max-width:180px;padding:8px 10px"></div></div>
 
+        <div class="h" id="sec-fulldevice">Full-device mode</div>
+        <div class="list">
+          ${window.BV.android?.available ? (st => sw("fullDeviceNative", st.fullDevice && st.isHome, "Use Blockvile as this phone's system",
+              st.isHome ? "Pressing Home always opens Blockvile. Exit hands the phone back" + (st.previousHome ? " to " + esc(st.previousHome) : "") + "."
+              : st.fullDevice ? "Almost done — choose Blockvile when Android asks for a home app." : "Blockvile becomes your home screen until you press Exit."))(window.BV.android.fullDevice())
+            : sw("fullDevice", s.fullDevice, "Use the whole screen until Exit", "Full screen, screen kept awake and keys captured — only ⏻ Exit gives the device back.")}
+          <button data-k="exit"><span>⏻ Exit Blockvile now<br><small>Back to your device's own system · Ctrl+Shift+E</small></span><small>›</small></button>
+        </div>
+
         <div class="h" id="sec-display">Display & wallpaper</div>
         <div class="list">
           ${sw("dark", root().dataset.theme === "dark", "Dark mode", "Shortcut: Ctrl+Shift+D")}
@@ -38,6 +47,9 @@
           <div><span>Volume</span><input type="range" min="0" max="100" value="${s.volume}" data-range="volume"></div>
           ${sw("dnd", f.dnd, "Do not disturb", "Silences banners and sounds")}
           <button data-k="testNotif"><span>Send a test notification</span><small>›</small></button>
+          ${sw("haptics", s.haptics, "Vibrate on touch", "A light buzz when you tap buttons and apps")}
+          ${sw("clicks", s.clicks, "Touch sounds", "A soft click when you tap")}
+          ${window.BV.android?.available ? `<button data-k="nativeNotif"><span>Phone notifications<br><small>${window.BV.android.canNotify() ? "On — Blockvile notifies you even when it's in the background" : "Off — tap to allow"}</small></span><small>›</small></button>` : ""}
         </div>
 
         <div class="h" id="sec-mode">Device mode <small class="muted">(Ctrl+Shift+M)</small></div>
@@ -72,6 +84,12 @@
           <div><span>Device storage</span><small>${est || "—"}</small></div>
         </div>
 
+        ${window.BV.android?.available ? `<div class="h" id="sec-android">Android</div>
+        <div class="list">
+          <button data-k="panel" data-panel="settings"><span>Phone settings<br><small>Wi-Fi, Bluetooth, display and everything else</small></span><small>›</small></button>
+          <button data-k="androidapps"><span>Android apps on this phone</span><small>${window.BV.android.apps().length} ›</small></button>
+          <div><span>Device</span><small>${esc((d => d.model + " · Android " + d.android)(window.BV.android.device()))}</small></div>
+        </div>` : ""}
         <div class="h" id="sec-system">System</div>
         <div class="list">
           <button data-k="help"><span>Keyboard shortcuts</span><small>Ctrl+/</small></button>
@@ -108,8 +126,16 @@
         if (k === "restart") return os.power("restart");
         if (k === "shutdown") return os.power("shutdown");
         if (k === "exit") return os.toggleExit();
-        if (k === "reset") { if (confirm("Erase all files, photos, settings and apps data?")) await os.reset(); }
+        if (k === "reset") { if (await BV.confirm("Erase all files, photos, settings and app data?", { ok: "Erase", danger: true })) await os.reset(); }
         if (k === "about") return os.open("about");
+        if (k === "launcher") return window.BV.android?.chooseLauncher();
+        if (k === "panel") return window.BV.android?.openPanel(b.dataset.panel);
+        if (k === "fullDevice") os.setFullDevice(!s.fullDevice);
+        if (k === "fullDeviceNative") { const st = window.BV.android.fullDevice(); st.fullDevice && st.isHome ? window.BV.android.stopFullDevice() : window.BV.android.startFullDevice(); }
+        if (k === "haptics") { s.haptics = !s.haptics; os.save(); if (s.haptics) navigator.vibrate?.(20); }
+        if (k === "clicks") { s.clicks = !s.clicks; os.save(); }
+        if (k === "nativeNotif") { window.BV.android.canNotify() ? window.BV.android.openPanel("notifications") : window.BV.android.askNotify(); }
+        if (k === "androidapps") return os.open("androidapps");
         draw();
       });
       body.addEventListener("change", e => {
@@ -156,18 +182,18 @@
       };
       const path = n => (cwd === "/" ? "" : cwd) + "/" + n;
       const tryDo = fn => { try { fn(); } catch (err) { os.toast("⚠ " + err.message); } draw(); };
-      body.addEventListener("click", e => {
+      body.addEventListener("click", async e => {
         const go = e.target.closest("[data-go]"); if (go) { cwd = go.dataset.go; return draw(); }
         const a = e.target.closest("[data-a]")?.dataset.a;
         if (a === "up") { cwd = fs.norm(cwd + "/.."); return draw(); }
-        if (a === "mkdir") { const n = prompt("Folder name:", "New folder"); if (n) tryDo(() => fs.mkdir(path(n))); return; }
-        if (a === "new") { const n = prompt("File name:", "Untitled.txt"); if (n) { tryDo(() => fs.write(path(n), "")); os.open("editor", { path: path(n) }); } return; }
+        if (a === "mkdir") { const n = await BV.ask("Folder name", "New folder"); if (n) tryDo(() => fs.mkdir(path(n))); return; }
+        if (a === "new") { const n = await BV.ask("File name", "Untitled.txt"); if (n) { tryDo(() => fs.write(path(n), "")); os.open("editor", { path: path(n) }); } return; }
         if (a === "upload") return body.querySelector("[data-up]").click();
         if (a === "photos") return os.open("gallery");
         const row = e.target.closest(".fl-row"); if (!row) return;
         const name = row.dataset.name, act = e.target.closest("[data-act]")?.dataset.act;
-        if (act === "rename") { const n = prompt("New name:", name); if (n && n !== name) tryDo(() => fs.rename(path(name), n)); return; }
-        if (act === "del") { if (confirm(`Delete “${name}”?`)) tryDo(() => fs.rm(path(name))); return; }
+        if (act === "rename") { const n = await BV.ask("Rename to", name); if (n && n !== name) tryDo(() => fs.rename(path(name), n)); return; }
+        if (act === "del") { if (await BV.confirm(`Delete “${name}”?`, { ok: "Delete", danger: true })) tryDo(() => fs.rm(path(name))); return; }
         if (row.dataset.type === "dir") { cwd = path(name); draw(); } else os.open("editor", { path: path(name) });
       });
       body.addEventListener("change", async e => {
@@ -195,12 +221,12 @@
       const ta = body.querySelector("textarea"), info = body.querySelector("[data-info]");
       const title = () => { os.setTitle("editor", (dirty ? "• " : "") + (file ? file.split("/").pop() : "Untitled") + " — Text Editor"); const w = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0; info.textContent = `${w} words · ${ta.value.length} chars`; };
       const load = p => { try { ta.value = os.fs.read(p); file = os.fs.norm(p); dirty = false; } catch (err) { os.toast("⚠ " + err.message); } title(); };
-      const saveAs = () => { const p = prompt("Save as (path):", file || "/Documents/Untitled.txt"); if (!p) return; file = os.fs.norm(p); save(); };
+      const saveAs = async () => { const p = await BV.ask("Save as (path)", file || "/Documents/Untitled.txt"); if (!p) return; file = os.fs.norm(p); save(); };
       const save = () => { if (!file) return saveAs(); try { os.fs.write(file, ta.value); dirty = false; os.toast("💾 Saved " + file); } catch (err) { os.toast("⚠ " + err.message); } title(); };
-      body.addEventListener("click", e => {
+      body.addEventListener("click", async e => {
         const a = e.target.closest("[data-a]")?.dataset.a;
-        if (a === "new") { if (dirty && !confirm("Discard unsaved changes?")) return; file = ""; ta.value = ""; dirty = false; title(); }
-        if (a === "open") { const p = prompt("Open file (path):", "/Documents/"); if (p) load(p); }
+        if (a === "new") { if (dirty && !(await BV.confirm("Discard unsaved changes?", { ok: "Discard", danger: true }))) return; file = ""; ta.value = ""; dirty = false; title(); }
+        if (a === "open") { const p = await BV.ask("Open file (path)", "/Documents/"); if (p) load(p); }
         if (a === "save") save();
         if (a === "saveas") saveAs();
       });
@@ -350,11 +376,11 @@
         const ta = body.querySelector("textarea"); ta.value = n.body; ta.focus();
         ta.oninput = () => { n.body = ta.value; n.t = Date.now(); save(); };
       };
-      body.addEventListener("click", e => {
+      body.addEventListener("click", async e => {
         if (e.target.closest("[data-new]")) { const n = { id: uid(), body: "", t: Date.now() }; notes.push(n); save(); edit(n); }
         const it = e.target.closest("[data-note]"); if (it) edit(notes.find(n => n.id === it.dataset.note));
         if (e.target.closest("[data-back]")) { notes = notes.filter(n => n.body.trim()); save(); list(); }
-        if (e.target.closest("[data-del]") && cur && confirm("Delete this note?")) { notes = notes.filter(n => n !== cur); save(); list(); }
+        if (e.target.closest("[data-del]") && cur && await BV.confirm("Delete this note?", { ok: "Delete", danger: true })) { notes = notes.filter(n => n !== cur); save(); list(); }
         if (e.target.closest("[data-export]") && cur) { const p = "/Documents/" + title(cur).replace(/[\/\\:*?"<>|]/g, "") + ".txt"; try { os.fs.write(p, cur.body); os.toast("💾 Saved to " + p); } catch (err) { os.toast("⚠ " + err.message); } }
       });
       os.onBack("notes", () => { if (cur) { notes = notes.filter(n => n.body.trim()); save(); list(); return true; } });
@@ -420,7 +446,10 @@
               ${al.length ? `<div class="list">${al.map(a => `<div><span><b style="font-size:24px;font-weight:300">${a.time}</b><br><small>${esc(a.label || "Alarm")}</small></span><span class="row"><i class="switch ${a.on ? "on" : ""}" data-tog="${a.id}"></i><button data-del="${a.id}">🗑</button></span></div>`).join("")}</div>` : `<p class="muted center">No alarms</p>`}
               <p class="muted" style="font-size:11px">Alarms ring while Blockvile Plus is open in your browser.</p>`; };
           v.onclick = e => { let al = os.store.get("alarms", []);
-            if (e.target.closest("[data-add]")) { al.push({ id: uid(), time: v.querySelector("[data-t]").value, label: v.querySelector("[data-l]").value, on: true }); os.toast("⏰ Alarm set"); }
+            if (e.target.closest("[data-add]")) { const time = v.querySelector("[data-t]").value, label = v.querySelector("[data-l]").value;
+              al.push({ id: uid(), time, label, on: true });
+              if (window.BV.android?.available) { const [h, m] = time.split(":").map(Number); window.BV.android.setAlarm(h, m, label); os.toast("⏰ Alarm set — also on your phone's clock, so it rings even when Blockvile is closed"); }
+              else os.toast("⏰ Alarm set"); }
             const t = e.target.closest("[data-tog]"); if (t) { const a = al.find(a => a.id === t.dataset.tog); a.on = !a.on; a.last = null; }
             const d = e.target.closest("[data-del]"); if (d) al = al.filter(a => a.id !== d.dataset.del);
             os.store.set("alarms", al); if (e.target.closest("button,.switch")) draw(); };
@@ -444,7 +473,7 @@
             <div class="row" style="justify-content:center;margin-top:10px"><button class="btn" data-s>Start</button><button class="btn ghost" data-x>Cancel</button></div>`;
           const c = v.querySelector("[data-c]");
           v.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { end = 0; left = b.dataset.m * 60000; c.textContent = f(left); });
-          v.querySelector("[data-s]").onclick = () => { if (!end) end = Date.now() + left; };
+          v.querySelector("[data-s]").onclick = () => { if (!end) { end = Date.now() + left; if (window.BV.android?.available) window.BV.android.setTimer(left / 1000, "Blockvile timer"); } };
           v.querySelector("[data-x]").onclick = () => { end = 0; c.textContent = f(left); };
           tick = setInterval(() => { if (!end) return; const l = end - Date.now();
             if (l <= 0) { end = 0; c.textContent = "00:00"; os.notify({ app: "clock", icon: "⏲", title: "Timer", text: "Time's up!" }); os.beep(988, 300, 4, os.state.volume / 100); } else c.textContent = f(l); }, 200);
@@ -472,7 +501,7 @@
           <div class="cal-grid">${["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map(d => `<span class="dn">${d}</span>`).join("")}
           ${days.map(d => { const k = iso(d); return `<button data-day="${k}" class="${k === today ? "today" : ""} ${k === sel ? "sel" : ""} ${d.getMonth() !== m ? "other" : ""} ${ev.some(e => e.date === k) ? "has" : ""}">${d.getDate()}</button>`; }).join("")}</div>
           <div class="h" style="margin-top:16px">${new Date(sel + "T12:00").toLocaleDateString([], { weekday: "long", day: "numeric", month: "long" })}</div>
-          ${dayEv.map(e => `<div class="todo"><span>${esc(e.title)}</span><small>${e.time || "All day"}</small><button data-del="${e.id}">🗑</button></div>`).join("") || `<p class="muted" style="margin:0 6px 10px">No events</p>`}
+          ${dayEv.map(e => `<div class="todo"><span>${esc(e.title)}</span><small>${e.time || "All day"}</small>${window.BV.android?.available ? `<button data-tophone="${e.id}" title="Add to phone calendar">📲</button>` : ""}<button data-del="${e.id}">🗑</button></div>`).join("") || `<p class="muted" style="margin:0 6px 10px">No events</p>`}
           <div class="toolbar"><input class="field" data-title placeholder="New event" style="flex:1;min-width:120px"><input type="time" class="field" data-time style="width:auto"><button class="btn" data-add>Add</button></div>`;
       };
       body.addEventListener("click", e => {
@@ -481,6 +510,8 @@
         if (e.target.closest("[data-add]")) { const t = body.querySelector("[data-title]").value.trim(); if (!t) return;
           const ev = os.store.get("events", []); ev.push({ id: uid(), date: sel, time: body.querySelector("[data-time]").value, title: t }); os.store.set("events", ev); draw(); }
         const x = e.target.closest("[data-del]"); if (x) { os.store.set("events", os.store.get("events", []).filter(e => e.id !== x.dataset.del)); draw(); }
+        const ph = e.target.closest("[data-tophone]"); if (ph) { const ev = os.store.get("events", []).find(e => e.id === ph.dataset.tophone); if (!ev) return;
+          const start = new Date(ev.date + "T" + (ev.time || "09:00")).getTime(); window.BV.android.addCalendarEvent(ev.title, start, start + 3600000); }
       });
       draw();
     }
@@ -528,13 +559,13 @@
             ${contacts.length ? `<div class="list">${contacts.map(c => `<div><span>👤 ${esc(c.name)}<br><small>${esc(c.num)}</small></span><span class="row"><button data-calln="${esc(c.num)}">📞</button><button data-delc="${c.id}">🗑</button></span></div>`).join("")}</div>` : `<p class="muted center">No contacts</p>`}`,
         })[tab]();
       };
-      body.addEventListener("click", e => {
+      body.addEventListener("click", async e => {
         const t = e.target.closest("[data-tab]"); if (t) { tab = t.dataset.tab; return draw(); }
         const d = e.target.closest("[data-d]"); if (d) { num += d.dataset.d; return draw(); }
         if (e.target.closest("[data-bs]")) { num = num.slice(0, -1); return draw(); }
         if (e.target.closest("[data-call]") && num) return call(num);
         const c = e.target.closest("[data-calln]"); if (c) return call(c.dataset.calln);
-        if (e.target.closest("[data-save]") && num) { const name = prompt("Contact name:"); if (name) { const cs = os.store.get("contacts", []); cs.push({ id: uid(), name, num }); os.store.set("contacts", cs); os.toast("Saved " + name); } return; }
+        if (e.target.closest("[data-save]") && num) { const name = await BV.ask("Contact name"); if (name) { const cs = os.store.get("contacts", []); cs.push({ id: uid(), name, num }); os.store.set("contacts", cs); os.toast("Saved " + name); } return; }
         if (e.target.closest("[data-addc]")) { const name = body.querySelector("[data-cn]").value.trim(), n = body.querySelector("[data-cnum]").value.trim(); if (!name || !n) return; const cs = os.store.get("contacts", []); cs.push({ id: uid(), name, num: n }); os.store.set("contacts", cs); return draw(); }
         const dc = e.target.closest("[data-delc]"); if (dc) { os.store.set("contacts", os.store.get("contacts", []).filter(c => c.id !== dc.dataset.delc)); draw(); }
       });
