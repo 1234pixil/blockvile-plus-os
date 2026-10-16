@@ -1,11 +1,17 @@
 /* Blockvile Plus OS — system libraries: settings store, blob storage (IndexedDB), virtual file system */
 (() => {
   /* ---------- Key/value store (localStorage, safe) ---------- */
+  // Some embeds (sandboxed iframes, blocked third-party storage) don't allow saving.
+  // Then Blockvile keeps everything in memory, so it still works — it just resets when the page closes.
+  let LS = null;
+  try { const t = window.localStorage; t.setItem("bv:__t", "1"); t.removeItem("bv:__t"); LS = t; } catch { }
+  const mem = new Map();
   const store = {
-    get(k, d) { try { const v = localStorage.getItem("bv:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
-    set(k, v) { try { localStorage.setItem("bv:" + k, JSON.stringify(v)); return true; } catch { return false; } },
-    del(k) { try { localStorage.removeItem("bv:" + k); } catch { } },
-    clearAll() { try { Object.keys(localStorage).filter(k => k.startsWith("bv:")).forEach(k => localStorage.removeItem(k)); } catch { } },
+    persistent: !!LS,
+    get(k, d) { try { const v = LS ? LS.getItem("bv:" + k) : (mem.has(k) ? mem.get(k) : null); return v === null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { const j = JSON.stringify(v); if (LS) LS.setItem("bv:" + k, j); else mem.set(k, j); return true; } catch { return false; } },
+    del(k) { try { LS ? LS.removeItem("bv:" + k) : mem.delete(k); } catch { } },
+    clearAll() { try { if (LS) Object.keys(LS).filter(k => k.startsWith("bv:")).forEach(k => LS.removeItem(k)); mem.clear(); } catch { } },
   };
 
   /* ---------- Blob storage (IndexedDB) for photos, music, recordings, wallpaper ---------- */
@@ -14,8 +20,8 @@
   function db() {
     if (dbp) return dbp;
     dbp = new Promise((res, rej) => {
-      if (!window.indexedDB) return rej(new Error("no idb"));
-      const r = indexedDB.open("blockvile-plus", 1);
+      let r;
+      try { if (!window.indexedDB) return rej(new Error("no idb")); r = indexedDB.open("blockvile-plus", 1); } catch (e) { return rej(e); }
       r.onupgradeneeded = () => STORES.forEach(s => r.result.objectStoreNames.contains(s) || r.result.createObjectStore(s, { keyPath: "id" }));
       r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
     });
@@ -25,12 +31,19 @@
     const t = d.transaction(s, mode), st = t.objectStore(s); const out = fn(st);
     t.oncomplete = () => res(out && "result" in out ? out.result : undefined); t.onerror = () => rej(t.error);
   }));
+  // Memory fallback when IndexedDB is blocked (e.g. some embeds)
+  const memDB = Object.fromEntries(STORES.map(s => [s, new Map()]));
+  let useMem = false;
+  const safe = (real, fake) => (...a) => useMem ? Promise.resolve(fake(...a)) : real(...a).catch(() => { useMem = true; return fake(...a); });
+  const newId = () => Date.now() + "-" + Math.random().toString(36).slice(2, 7);
   const idb = {
-    put: (s, rec) => tx(s, "readwrite", st => st.put({ date: Date.now(), ...rec, id: rec.id || (Date.now() + "-" + Math.random().toString(36).slice(2, 7)) })),
-    get: (s, id) => tx(s, "readonly", st => st.get(id)),
-    all: (s) => tx(s, "readonly", st => st.getAll()).then(a => (a || []).sort((x, y) => y.date - x.date)),
-    del: (s, id) => tx(s, "readwrite", st => st.delete(id)),
-    clear: () => Promise.all(STORES.map(s => tx(s, "readwrite", st => st.clear()))).catch(() => { }),
+    put: safe((s, rec) => tx(s, "readwrite", st => st.put({ date: Date.now(), ...rec, id: rec.id || newId() })),
+              (s, rec) => { const r = { date: Date.now(), ...rec, id: rec.id || newId() }; memDB[s].set(r.id, r); return r.id; }),
+    get: safe((s, id) => tx(s, "readonly", st => st.get(id)), (s, id) => memDB[s].get(id)),
+    all: safe((s) => tx(s, "readonly", st => st.getAll()).then(a => (a || []).sort((x, y) => y.date - x.date)),
+              (s) => [...memDB[s].values()].sort((x, y) => y.date - x.date)),
+    del: safe((s, id) => tx(s, "readwrite", st => st.delete(id)), (s, id) => { memDB[s].delete(id); }),
+    clear: () => { STORES.forEach(s => memDB[s].clear()); return useMem ? Promise.resolve() : Promise.all(STORES.map(s => tx(s, "readwrite", st => st.clear()))).catch(() => { }); },
   };
 
   /* ---------- Virtual file system (persisted) ---------- */
@@ -99,6 +112,47 @@
   const fmtSize = n => n < 1024 ? n + " B" : n < 1048576 ? (n / 1024).toFixed(1) + " KB" : (n / 1048576).toFixed(1) + " MB";
   const download = (blob, name) => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); };
 
-  window.BV = { store, idb, fs, esc, safeMath, beep, fmtSize, download };
+  /* ---------- In-OS dialogs (embeds often block the browser's own prompt/confirm boxes) ---------- */
+  function dialog({ title, text, value, input, okText = "OK", cancelText = "Cancel", danger = false }) {
+    return new Promise(resolve => {
+      const host = document.getElementById("screen") || document.body;
+      const d = document.createElement("div");
+      d.className = "bv-dialog";
+      d.innerHTML = `<form class="bv-dialog-box" role="dialog" aria-modal="true"><p></p>${text ? `<small class="bv-dialog-text"></small>` : ""}${input ? `<input class="field" autocomplete="off">` : ""}
+        <div class="bv-dialog-btns"><button type="button" class="btn ghost" data-x></button><button class="btn${danger ? " danger" : ""}">${okText}</button></div></form>`;
+      d.querySelector("p").textContent = title;
+      d.querySelector("[data-x]").textContent = cancelText;
+      if (text) d.querySelector(".bv-dialog-text").textContent = text;
+      const inp = d.querySelector("input"); if (inp) inp.value = value ?? "";
+      const done = v => { d.remove(); document.removeEventListener("keydown", esc, true); resolve(v); };
+      const esc = e => { if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); done(input ? null : false); } };
+      document.addEventListener("keydown", esc, true);
+      d.querySelector("[data-x]").onclick = () => done(input ? null : false);
+      d.addEventListener("pointerdown", e => { if (e.target === d) done(input ? null : false); });
+      d.querySelector("form").onsubmit = e => { e.preventDefault(); done(input ? inp.value : true); };
+      host.appendChild(d);
+      setTimeout(() => { if (inp) { inp.focus(); inp.select(); } else d.querySelector("form button:last-child").focus(); }, 20);
+    });
+  }
+  const ask = (title, value = "") => dialog({ title, value, input: true });
+  const confirmBox = (title, opts = {}) => dialog({ title, text: opts.text, okText: opts.ok || "OK", cancelText: opts.cancel || "Cancel", danger: !!opts.danger });
+
+  // Sandboxed embeds block real form submission. Blockvile's forms never navigate anyway, so Enter and
+  // submit buttons fire a plain "submit" event instead — this works the same everywhere.
+  const fakeSubmit = (form, e) => { e.preventDefault(); form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true })); };
+  document.addEventListener("keydown", e => {
+    const t = e.target;
+    if (e.key !== "Enter" || e.isComposing || !t.form || !(t instanceof HTMLInputElement) || /^(button|submit|checkbox|radio|file)$/.test(t.type)) return;
+    fakeSubmit(t.form, e);
+  }, true);
+  document.addEventListener("click", e => {
+    const b = e.target.closest?.("button, input[type=submit]");
+    if (!b || !b.form || (b.tagName === "BUTTON" && b.type !== "submit")) return;
+    fakeSubmit(b.form, e);
+  }, true);
+
+  let embedded = false; try { embedded = window.self !== window.top; } catch { embedded = true; }
+
+  window.BV = { store, idb, fs, esc, safeMath, beep, fmtSize, download, ask, confirm: confirmBox, embedded, isMemoryIdb: () => useMem };
   window.BV_APPS = window.BV_APPS || [];
 })();
