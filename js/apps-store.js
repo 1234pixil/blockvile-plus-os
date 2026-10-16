@@ -39,6 +39,7 @@
     gallery: ["All your photos", "View, download, delete and set photos as wallpaper.", ["Full-screen viewer", "Set as wallpaper"]],
     camera: ["Take photos", "Front and back cameras, saved straight to Gallery.", ["Switch cameras", "Saves to Gallery"]],
     music: ["Play your own music", "Add songs from your device and play them with shuffle and repeat.", ["Shuffle & repeat", "Saved in your library"]],
+    videos: ["Watch YouTube videos", "Paste any YouTube link — videos, Shorts or playlists — and watch it here. Save favourites, see your history, and optionally search inside the app with your own free YouTube API key.", ["Videos, Shorts & playlists", "Saved videos & history", "Optional in-app search"]],
     cloudmusic: ["Stream music from the cloud", "Play tracks, playlists and artists from SoundCloud using its official player, and keep them in your library.", ["Paste any SoundCloud link", "Your saved library", "Playlists & artists"]],
     recorder: ["Record voice memos", "Record audio with your microphone, play it back or download it.", ["One-tap recording", "Download recordings"]],
     paint: ["Draw and sketch", "Brushes, colours, eraser and undo, and save drawings to Gallery.", ["Undo", "Custom colours", "Save to Gallery"]],
@@ -49,7 +50,7 @@
     tictactoe: ["X and O against the computer", "Play against an unbeatable AI, or a friend.", ["Easy & hard AI", "Two-player mode"]],
     converter: ["Convert units instantly", "Length, weight, temperature, speed, area and data.", ["6 categories", "Live conversion"]],
   };
-  const PERMS = { camera: ["📷 Camera"], recorder: ["🎙 Microphone"], weather: ["🌐 Internet", "📍 Location"], maps: ["🌐 Internet", "📍 Location"], browser: ["🌐 Internet"], cloudmusic: ["🌐 Internet"], phone: ["📞 Phone dialer"], gallery: ["🖼 Photos"], music: ["🎵 Media"] };
+  const PERMS = { camera: ["📷 Camera"], recorder: ["🎙 Microphone"], weather: ["🌐 Internet", "📍 Location"], maps: ["🌐 Internet", "📍 Location"], browser: ["🌐 Internet"], cloudmusic: ["🌐 Internet"], videos: ["🌐 Internet"], phone: ["📞 Phone dialer"], gallery: ["🖼 Photos"], music: ["🎵 Media"] };
   const sizeOf = a => { const n = (a.render?.toString().length || 2000) * 1.6; return n < 1024 * 1024 ? (n / 1024).toFixed(0) + " KB" : (n / 1048576).toFixed(1) + " MB"; };
   const CAT_IC = { System: "⚙️", Productivity: "📋", Communication: "💬", Media: "🎬", "Music & audio": "🎧", Internet: "🌐", Games: "🎮", Tools: "🧰", "Web apps": "🔗" };
 
@@ -79,18 +80,20 @@
     ["com.google.android.apps.maps", "Google Maps", "Learning & tools", "🗺", "https://www.google.com/maps"],
     ["com.google.android.apps.translate", "Google Translate", "Learning & tools", "🌍", "https://translate.google.com"],
   ];
+  const NAT = () => window.BV.android?.available ? window.BV.android : null;
   function openPlay(pkg) {
     const name = ANDROID_APPS.find(a => a[0] === pkg)?.[1];
     store.set("playSent", [{ pkg, name, t: Date.now() }, ...store.get("playSent", []).filter(x => x.pkg !== pkg)].slice(0, 20));
-    window.open(PLAY_APP(pkg), "_blank", "noopener");
+    if (NAT()) NAT().openPlay(pkg); else window.open(PLAY_APP(pkg), "_blank", "noopener");
   }
+  const playSearch = q => NAT() ? NAT().search(q) : window.open(PLAY_SEARCH(q), "_blank", "noopener");
 
   /* ================= Blockvile Store (Play-Store-style) ================= */
   A.push({
     id: "store", name: "Blockvile Store", icon: "🛍", bg: "linear-gradient(135deg,#22c55e 0%,#2f6bff 55%,#ff6a3d 100%)", cat: "System", system: true, dock: true,
     keywords: "app store play store install apps download games", size: [820, 640],
-    render(body, os) {
-      let tab = "home", q = "", detail = null, cat = null; const installing = {};
+    render(body, os, args) {
+      let tab = args?.tab || "home", q = "", detail = null, cat = null; const installing = {};
       body.style.padding = "0";
       const meta = a => a.web ? [`Website · ${hostOf(a.url)}`, `Opens ${a.url} as an app.`, ["Runs in its own window", "Open in real browser any time"]] : (META[a.id] || ["A Blockvile app", "", []]);
       const hostOf = u => { try { return new URL(u).hostname; } catch { return u; } };
@@ -103,7 +106,7 @@
       const row = (a, rank) => `<div class="ps-row" data-detail="${a.id}">${rank ? `<span class="ps-rank">${rank}</span>` : ""}<i class="app-ic" style="background:${a.bg}">${a.icon}</i>
         <div><b>${esc(a.name)}</b><small>${esc(meta(a)[0])}</small><small>${a.cat} · ${sizeOf(a)}</small></div>${btn(a)}</div>`;
       const section = (title, apps) => apps.length ? `<div class="ps-sec"><h3>${title}</h3><div class="ps-scroll">${apps.map(card).join("")}</div></div>` : "";
-      const all = () => os.apps().filter(a => !a.hidden);
+      const all = () => os.apps().filter(a => !a.hidden && !a.native);
 
       const views = {
         home() {
@@ -129,9 +132,18 @@
         android() {
           const sent = store.get("playSent", []);
           const groups = [...new Set(ANDROID_APPS.map(a => a[2]))];
+          const nat = NAT(), has = pkg => nat && nat.installed(pkg), pending = store.get("pendingPlay", []);
+          const getBtn = pkg => has(pkg) ? `<button class="ps-btn ghost" data-natopen="${esc(pkg)}">Open</button>`
+            : nat ? `<button class="ps-btn" data-playget="${esc(pkg)}">${pending.includes(pkg) ? "Installing…" : "Install"}</button>` : `<button class="ps-btn" data-playget="${esc(pkg)}">Get ↗</button>`;
           const arow = a => { const [pkg, name, c, ic, web] = a;
-            return `<div class="ps-row"><i class="app-ic" style="background:${CAT_BG[c] || "#64748b"}">${ic}</i><div><b>${esc(name)}</b><small>${c} · ${pkg}</small></div>
-              ${web ? `<button class="ps-btn ghost" data-shortcut="${pkg}" title="Add the web version to your home screen">＋ Web</button>` : ""}<button class="ps-btn" data-playget="${pkg}">Get ↗</button></div>`; };
+            return `<div class="ps-row"><i class="app-ic" style="background:${has(pkg) ? "transparent" : CAT_BG[c] || "#64748b"}">${has(pkg) ? nat.icon(pkg) ? `<img class="nat-ic" src="${nat.icon(pkg)}" alt="">` : ic : ic}</i><div><b>${esc(name)}</b><small>${has(pkg) ? "✓ Installed on this phone" : c + " · " + pkg}</small></div>
+              ${web && !nat ? `<button class="ps-btn ghost" data-shortcut="${pkg}" title="Add the web version to your home screen">＋ Web</button>` : ""}${getBtn(pkg)}</div>`; };
+          if (nat) return `<div class="ps-note"><b>🤖 Android apps</b><p><b>Install</b> opens the app in Google Play — tap Install there, then come back. Blockvile spots the new app and puts it on your home screen.</p>
+              <button class="btn ghost" data-openapp="androidapps" style="margin-top:8px">📱 All apps on this phone (${nat.apps().length})</button></div>
+            <div class="ps-sec"><h3>Search Google Play</h3><div class="toolbar"><input class="field" data-play placeholder="App name, Play link, or package (com.example.app)" style="flex:1;min-width:180px"><button class="btn" data-playgo>Search</button></div></div>
+            ${sent.length ? `<div class="ps-sec"><h3>🕘 Recent</h3>${sent.slice(0, 5).map(x => `<div class="ps-row"><i class="app-ic" style="background:#64748b">📦</i><div><b>${esc(x.name || x.pkg)}</b><small>${has(x.pkg) ? "✓ Installed" : esc(x.pkg)}</small></div>${getBtn(x.pkg)}</div>`).join("")}</div>` : ""}
+            ${groups.map(g => `<div class="ps-sec"><h3>${g}</h3>${ANDROID_APPS.filter(a => a[2] === g).map(arow).join("")}</div>`).join("")}
+            <p class="muted" style="font-size:11px;margin-top:14px">Apps are installed by Google Play. App names belong to their owners; Blockvile isn't affiliated with them.</p>`;
           return `<div class="ps-note"><b>🤖 Android apps from Google Play</b><p>${IS_ANDROID
               ? "You're on Android: <b>Get</b> opens the app's page in the Play Store so you can install it on this phone."
               : "<b>Get</b> opens the app's Google Play page. Signed in to Google Play, you can install it straight to your Android phone from there."}
@@ -155,7 +167,7 @@
           const ql = q.toLowerCase();
           const r = all().filter(a => a.name.toLowerCase().includes(ql) || (a.keywords || "").includes(ql) || (a.cat || "").toLowerCase().includes(ql) || meta(a)[1].toLowerCase().includes(ql));
           return `<div class="ps-sec"><h3>Results for “${esc(q)}”</h3>${r.map(a => row(a)).join("") || `<p class="muted">No Blockvile apps found. Try “game”, “music” or “photo”.</p>`}
-            <div class="ps-row" data-playsearch="${esc(q)}"><i class="app-ic" style="background:linear-gradient(135deg,#34d399,#2563eb)">🤖</i><div><b>Search Android apps for “${esc(q)}”</b><small>Opens Google Play</small></div><span class="ps-btn ghost">↗</span></div></div>`;
+            <div class="ps-row" data-playsearch="${esc(q)}"><i class="app-ic" style="background:linear-gradient(135deg,#34d399,#2563eb)">🤖</i><div><b>Search Android apps for “${esc(q)}”</b><small>${NAT() ? "Search Google Play" : "Opens Google Play"}</small></div><span class="ps-btn ghost">↗</span></div></div>`;
         },
       };
       const detailView = a => {
@@ -188,24 +200,25 @@
           if (body.isConnected) draw();
         }, 120);
       };
-      body.addEventListener("click", e => {
+      body.addEventListener("click", async e => {
         const t = e.target.closest("[data-tab]"); if (t) { tab = t.dataset.tab; detail = null; q = ""; cat = null; draw(); body.querySelector(".ps-main").scrollTop = 0; return; }
         if (e.target.closest("[data-clear]")) { q = ""; return draw(); }
         const g = e.target.closest("[data-get]"); if (g) { e.stopPropagation(); return install(g.dataset.get); }
         const o = e.target.closest("[data-openapp]"); if (o) { e.stopPropagation(); return os.open(o.dataset.openapp); }
         const u = e.target.closest("[data-uninstall]"); if (u) { e.stopPropagation(); const a = os.apps().find(x => x.id === u.dataset.uninstall);
-          if (!confirm(`${a.web ? "Remove" : "Uninstall"} ${a.name}?`)) return;
+          if (!(await BV.confirm(`${a.web ? "Remove" : "Uninstall"} ${a.name}?`, { ok: a.web ? "Remove" : "Uninstall", danger: true }))) return;
           if (a.web) { store.set("webapps", store.get("webapps", []).filter(w => w.id !== a.id)); os.unregisterApp(a.id); if (detail === a.id) detail = null; os.toast("🗑 " + a.name + " removed"); }
           else os.install(a.id, false);
           return draw(); }
         const c = e.target.closest("[data-cat]"); if (c) { cat = c.dataset.cat || null; return draw(); }
         if (e.target.closest("[data-back]")) { detail = null; return draw(); }
-        const pg = e.target.closest("[data-playget]"); if (pg) { e.stopPropagation(); return openPlay(pg.dataset.playget); }
-        const ps = e.target.closest("[data-playsearch]"); if (ps) return window.open(PLAY_SEARCH(ps.dataset.playsearch), "_blank", "noopener");
+        const pg = e.target.closest("[data-playget]"); if (pg) { e.stopPropagation(); openPlay(pg.dataset.playget); return draw(); }
+        const ps = e.target.closest("[data-playsearch]"); if (ps) return playSearch(ps.dataset.playsearch);
+        const no = e.target.closest("[data-natopen]"); if (no) { e.stopPropagation(); return NAT()?.launch(no.dataset.natopen); }
         if (e.target.closest("[data-playgo]")) {
           const v = body.querySelector("[data-play]").value.trim(); if (!v) return;
           const m = v.match(/[?&]id=([\w.]+)/), pkg = m ? m[1] : /^[a-zA-Z]\w*(\.\w+)+$/.test(v) ? v : null;
-          return pkg ? openPlay(pkg) : window.open(PLAY_SEARCH(v), "_blank", "noopener");
+          if (pkg) { openPlay(pkg); return draw(); } return playSearch(v);
         }
         const sc = e.target.closest("[data-shortcut]"); if (sc) {
           const a = ANDROID_APPS.find(x => x[0] === sc.dataset.shortcut); if (!a) return;
@@ -227,9 +240,9 @@
       body.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.dataset.play !== undefined) body.querySelector("[data-playgo]").click(); });
       os.onBack("store", () => { if (detail) { detail = null; draw(); return true; } if (q) { q = ""; draw(); return true; } if (cat) { cat = null; draw(); return true; } });
       const onCh = () => { if (!body.contains(document.activeElement) || !/INPUT/.test(document.activeElement.tagName)) draw(); };
-      window.addEventListener("bv:changed", onCh);
+      ["bv:changed", "bv:android-apps"].forEach(ev => window.addEventListener(ev, onCh));
       draw();
-      return () => window.removeEventListener("bv:changed", onCh);
+      return () => ["bv:changed", "bv:android-apps"].forEach(ev => window.removeEventListener(ev, onCh));
     }
   });
 
