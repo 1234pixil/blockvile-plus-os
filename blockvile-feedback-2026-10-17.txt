@@ -1,0 +1,17 @@
+Blockvile Plus feedback — Idea — ★★★★★
+
+...
+
+Reply to: binu2star1@gmail.com
+
+— Device —
+version: 3.5
+mode: laptop
+theme: light
+platform: Windows
+browser: Chrome
+screen: 1366×768 @1x
+window: 1366×768
+installed: Installed
+embedded: false
+language: en-GB
