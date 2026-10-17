@@ -26,13 +26,19 @@
     info: pkg => available && call("appInfo", pkg),
     icon(pkg) { if (!available) return ""; if (!iconCache.has(pkg)) iconCache.set(pkg, call("getIcon", pkg) || ""); return iconCache.get(pkg); },
     isDefaultLauncher: () => available && !!call("isDefaultLauncher"),
-    chooseLauncher: () => available && call("chooseLauncher"),
     device() { try { return JSON.parse(call("deviceInfo") || "{}"); } catch { return {}; } },
-    // Full-device mode: Blockvile is the phone's home screen until Exit
-    fullDevice() { try { return JSON.parse(call("fullDeviceStatus") || "{}"); } catch { return {}; } },
-    startFullDevice: () => available && call("startFullDevice"),
-    stopFullDevice: () => available && call("stopFullDevice"),
+    // Temporary takeover: Blockvile is the phone's home screen until Exit, `application exit`, or a restart. Never permanent.
+    takeover() { if (!available) return {}; try { return JSON.parse(call("takeoverStatus") || "{}"); } catch { return {}; } },
+    startTakeover: () => available && call("startTakeover"),
     exitToSystem: () => available && call("exitToSystem"),
+    // Updates (web content over the air; native changes go through Google Play)
+    ota: () => { if (!available) return null; try { return JSON.parse(call("otaStatus") || "{}"); } catch { return {}; } },
+    otaApply: () => available && call("otaApply"),
+    otaBooted: () => available && call("otaBooted"),
+    playUpdate: () => available && call("playUpdate"),
+    // Digital SIM / sign-in helpers
+    onWifi: () => available ? !!call("onWifi") : null,
+    pendingDeepLink: () => available ? (call("pendingDeepLink") || "") : "",
     // Real device controls
     setBrightness: p => available && call("setBrightness", Math.round(p)),
     setVolume: p => available && call("setVolume", Math.round(p)),
@@ -176,33 +182,17 @@
     if (document.hidden && !os?.state.flags.dnd) android.notify(n.title, n.text);
   });
 
-  /* ---------- Full-device mode: use Blockvile as the phone's system until Exit ---------- */
-  function offerFullDevice(again) {
-    const os = window.BlockvileOS, st = android.fullDevice(); if (!os || st.isHome) return;
-    const was = st.previousHome ? ` Exit takes you back to ${st.previousHome}.` : " Exit takes you back to your usual home screen.";
-    window.BV.confirm(again ? "Use Blockvile for the whole phone again?" : "Use Blockvile as your phone's system?", {
-      text: (again ? "Blockvile will be your home screen again until you press Exit." : "Blockvile becomes your home screen: pressing Home always comes back here, with your phone's apps in the Android Apps drawer.") + was,
-      ok: again ? "Yes, use Blockvile" : "Use for whole phone", cancel: again ? "Just this time" : "Not now",
-    }).then(yes => { store.set("askedFullDevice", true); if (yes) android.startFullDevice(); else call("clearExited"); });
-  }
-  window.addEventListener("bv:fulldevice", () => {
-    const st = android.fullDevice(), os = window.BlockvileOS; if (!os) return;
-    if (st.isHome) os.toast("✅ Blockvile is now your phone's system — Exit gives it back");
-    else if (st.fullDevice) os.toast("Blockvile isn't your home screen yet — choose it in the list to finish");
-    window.dispatchEvent(new Event("bv:changed"));
+  /* ---------- Temporary takeover (started only by the user's button / `application takeover`) ---------- */
+  window.addEventListener("bv:takeover", () => {
+    const st = android.takeover(), os = window.BlockvileOS; if (!os) return;
+    if (st.active && st.isHome) os.toast("⛶ Temporary takeover on — Exit, application exit or a restart gives the phone back" + (st.previousHome ? " to " + st.previousHome : ""));
+    else if (st.active) os.toast("Choose Blockvile when Android asks for a home app to finish starting the takeover");
   });
-  const whenUnlocked = fn => { const os = window.BlockvileOS; if (os?.afterUnlock) os.afterUnlock(fn); else setTimeout(fn, 2500); };
-  // Opened again after Exit (from the app icon): offer to take over the whole phone again
-  const maybeReturn = () => { const st = android.fullDevice(); if (st.fullDevice && st.exited && !st.isHome) whenUnlocked(() => offerFullDevice(true)); else if (st.exited) call("clearExited"); };
-  window.addEventListener("bv:opened", maybeReturn);
-  window.addEventListener("bv:resume", () => { if (android.fullDevice().exited) maybeReturn(); });
+  window.addEventListener("bv:resume", () => window.dispatchEvent(new Event("bv:takeover-refresh")));
 
   // run once the OS has started
   window.addEventListener("load", () => setTimeout(() => {
     refresh();
-    const st = android.fullDevice();
-    if (st.fullDevice && st.exited && !st.isHome) maybeReturn();
-    else if (!store.get("askedFullDevice", false) && !st.isHome) whenUnlocked(() => offerFullDevice(false));
     if (!android.canNotify() && !store.get("askedNotify", false)) { store.set("askedNotify", true); android.askNotify(); }
   }, 800));
 })();
