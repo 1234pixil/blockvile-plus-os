@@ -18,16 +18,20 @@
         let est = ""; try { const e = await navigator.storage?.estimate?.(); if (e) est = `${fmtSize(e.usage || 0)} used of ${fmtSize(e.quota || 0)}`; } catch { }
         body.innerHTML = `
         <div class="h" id="sec-account">Account</div>
-        <div class="list"><div><span>Name</span><input class="field" data-in="username" value="${esc(s.username)}" style="max-width:180px;padding:8px 10px"></div></div>
+        <div class="list"><div><span>Name</span><input class="field" data-in="username" value="${esc(s.username)}" style="max-width:180px;padding:8px 10px"></div>
+          <button data-k="accounts"><span><b>👤 ${window.BV.auth?.signedIn() ? esc(window.BV.auth.email()) : "Sign in"}</b><br><small>${window.BV.auth?.signedIn() ? "Account, linked devices, Google &amp; Microsoft" : "Google, Microsoft or any email — unlocks Digital SIM"}</small></span><small>›</small></button></div>
 
-        <div class="h" id="sec-fulldevice">Full-device mode</div>
+        <div class="h" id="sec-takeover">Temporary takeover</div>
         <div class="list">
-          ${window.BV.android?.available ? (st => sw("fullDeviceNative", st.fullDevice && st.isHome, "Use Blockvile as this phone's system",
-              st.isHome ? "Pressing Home always opens Blockvile. Exit hands the phone back" + (st.previousHome ? " to " + esc(st.previousHome) : "") + "."
-              : st.fullDevice ? "Almost done — choose Blockvile when Android asks for a home app." : "Blockvile becomes your home screen until you press Exit."))(window.BV.android.fullDevice())
-            : sw("fullDevice", s.fullDevice, "Use the whole screen until Exit", "Full screen, screen kept awake and keys captured — only ⏻ Exit gives the device back.")}
+          ${os.isTakeover()
+            ? `<button data-k="endTakeover"><span><b>⛶ Temporary takeover is on — end it</b><br><small>Gives the device back to its own system. Terminal: <code>application exit</code></small></span><small>■</small></button>`
+            : `<button data-k="startTakeover"><span><b>⛶ Temporarily let Blockvile take over this device</b><br><small>${window.BV.android?.available
+                ? "Blockvile becomes the home screen until you press Exit, type application exit, or restart the phone."
+                : "Full screen, screen kept awake and keys captured until you press Exit or type application exit."} Never permanent.</small></span><small>›</small></button>`}
           <button data-k="exit"><span>⏻ Exit Blockvile now<br><small>Back to your device's own system · Ctrl+Shift+E</small></span><small>›</small></button>
         </div>
+
+        ${window.BV.updates?.html(sw) || ""}
 
         <div class="h" id="sec-display">Display & wallpaper</div>
         <div class="list">
@@ -98,12 +102,14 @@
           <button data-k="shutdown"><span>Shut down</span><small>⏻</small></button>
           <button data-k="exit"><span>Exit Blockvile Plus OS<br><small>Shortcut: Ctrl+Shift+E</small></span><small>⏏</small></button>
           <button data-k="reset"><span style="color:var(--danger)">Erase everything & reset</span><small>↺</small></button>
-          <button data-k="about"><span>About</span><small>Blockvile Plus 3.0</small></button>
+          <button data-k="about"><span>About</span><small>Blockvile Plus ${esc(window.BV_CONFIG?.version || "")}</small></button>
         </div>`;
         body.scrollTop = top;
         navigator.getBattery?.().then(b => body.querySelectorAll("[data-battery]").forEach(e => e.textContent = Math.round(b.level * 100) + "%" + (b.charging ? " · charging" : ""))).catch(() => { });
       };
       const root = () => document.documentElement;
+      const onUpd = () => { if (!body.isConnected) return window.removeEventListener("bv:update", onUpd); draw(); };
+      window.addEventListener("bv:update", onUpd);
       body.addEventListener("click", async e => {
         const b = e.target.closest("button"); if (!b) return;
         if (b.dataset.mode) os.setMode(b.dataset.mode);
@@ -128,10 +134,13 @@
         if (k === "exit") return os.toggleExit();
         if (k === "reset") { if (await BV.confirm("Erase all files, photos, settings and app data?", { ok: "Erase", danger: true })) await os.reset(); }
         if (k === "about") return os.open("about");
-        if (k === "launcher") return window.BV.android?.chooseLauncher();
+        if (k === "accounts") return os.open("accounts");
         if (k === "panel") return window.BV.android?.openPanel(b.dataset.panel);
-        if (k === "fullDevice") os.setFullDevice(!s.fullDevice);
-        if (k === "fullDeviceNative") { const st = window.BV.android.fullDevice(); st.fullDevice && st.isHome ? window.BV.android.stopFullDevice() : window.BV.android.startFullDevice(); }
+        if (k === "startTakeover") return os.startTakeover();
+        if (k === "openUpdates") return os.open("updates");
+        if (k === "checkUpdate") { const U = window.BV.updates; const p = U.check(true); draw(); const got = await p; if (!U.configured()) os.toast("Updates need the hosted website"); else if (U.state.error) os.toast("⚠️ " + U.state.error); else os.toast(got ? "⬆️ Blockvile " + U.state.remote.version + " is ready" : "✅ Blockvile is up to date"); return draw(); }
+        if (k === "applyUpdate") return window.BV.updates.apply();
+        if (k === "endTakeover") { os.endTakeover(); return draw(); }
         if (k === "haptics") { s.haptics = !s.haptics; os.save(); if (s.haptics) navigator.vibrate?.(20); }
         if (k === "clicks") { s.clicks = !s.clicks; os.save(); }
         if (k === "nativeNotif") { window.BV.android.canNotify() ? window.BV.android.openPanel("notifications") : window.BV.android.askNotify(); }
@@ -263,7 +272,13 @@
   apps              list apps         theme dark|light change theme
   mode phone|tablet|laptop            calc <sum>       calculator
   notify <text>     notification      weather          current weather
-  date  whoami  uptime  history  neofetch  clear  lock  reboot  shutdown  exit`;
+  date  whoami  uptime  history  neofetch  clear  lock  reboot  shutdown  exit
+  update            check for a new version      update now   install it (only when you type this)
+
+Temporary takeover (Blockvile runs the whole device for a while — never permanent):
+  application takeover   start a temporary takeover of this device
+  application status     is a takeover running?
+  application exit       end the temporary takeover and go back to the device's own system`;
       const cmds = {
         help: () => print(HELP),
         ls: a => { const l = fs.list(P(a[0])); print(l.length ? l.map(n => n.type === "dir" ? n.name + "/" : n.name).join("    ") : "(empty)"); },
@@ -305,6 +320,46 @@
         clear: () => out.innerHTML = "",
         lock: () => os.lock(), reboot: () => os.power("restart"), shutdown: () => os.power("shutdown"),
         exit: () => os.close("terminal"),
+        update: async a => {
+          const U = window.BV.updates; if (!U) throw new Error("updates are not available");
+          const sub = (a[0] || "").toLowerCase();
+          if (sub && !["now", "check", "status"].includes(sub)) throw new Error("usage: update | update now");
+          if (sub === "status") { const r = U.state.remote; return print(`Version ${U.local().version}` + (U.available() ? ` — ${r.version} is ready (type 'update now')` : " — up to date")); }
+          if (sub !== "now") {
+            if (!U.configured()) return print("Updates need the hosted website (or the update address set in the Android app).");
+            print("Checking for updates…");
+            const got = await U.check(true);
+            if (U.state.error) return print("⚠️ " + U.state.error, "er");
+            if (!got) return print(`Blockvile ${U.local().version} is up to date.`, "ac");
+            const r = U.state.remote;
+            print(`Update available: ${U.local().version} → ${r.version}`, "ac");
+            (r.notes || []).forEach(n => print("  • " + n));
+            return print("Nothing is installed yet. Type 'update now' to install it.");
+          }
+          if (!U.available()) { if (U.configured()) await U.check(true); }
+          if (!U.available()) return print(U.state.error ? "⚠️ " + U.state.error : `Blockvile ${U.local().version} is up to date.`, U.state.error ? "er" : "ac");
+          print(`Updating to ${U.state.remote.version}… Blockvile will restart when it is done.`, "ac");
+          await U.apply();
+        },
+        application: async a => {
+          const sub = (a[0] || "").toLowerCase(), on = os.isTakeover();
+          if (sub === "exit") {
+            print(on ? "Ending the temporary takeover…" : "No temporary takeover is running.", on ? "ac" : "");
+            print(window.BV.android?.available ? "Handing the phone back to its own home screen…" : "Leaving Blockvile — your device's own system is back in charge.");
+            await new Promise(r => setTimeout(r, 700));
+            os.endTakeover(true);
+            if (!window.BV.android?.available) os.toggleExit();   // Android: ending the takeover already returns to the phone's own home screen
+            return;
+          }
+          if (sub === "takeover" || sub === "start") {
+            if (on) return print("A temporary takeover is already running. Type 'application exit' to end it.");
+            print("Starting a temporary takeover — Blockvile will run this device until you type 'application exit' or press ⏻ Exit.", "ac");
+            print(window.BV.android?.available ? "Android will ask you to choose Blockvile as the home app. It switches back on Exit or when the phone restarts." : "Nothing is changed permanently: closing the page or restarting also ends it.");
+            await os.startTakeover(); return;
+          }
+          if (sub === "status") return print(on ? "Temporary takeover: ON — type 'application exit' to end it." : "Temporary takeover: off — your device's own system is in charge.");
+          throw new Error("usage: application takeover | application status | application exit");
+        },
       };
       const run = async raw => {
         raw = raw.trim(); print(`${ps.textContent} ${raw}`, "pr"); if (!raw) return;
