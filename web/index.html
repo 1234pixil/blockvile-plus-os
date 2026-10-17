@@ -119,6 +119,9 @@
               <div class="w-loc" data-wx-loc></div>
             </div>
             <button class="glass widget search-widget" data-action="spotlight">⌕ Search apps, files, settings…</button>
+            <button class="glass widget tk-widget upd-widget" data-action="open-updates"><span class="tk-ic">⬆️</span><span><b>Update available</b><small>Tap to see what's new — it only installs when you tap Update now</small></span></button>
+            <button class="glass widget tk-widget tk-start" data-action="takeover"><span class="tk-ic">⛶</span><span><b>Temporarily let Blockvile take over this device</b><small>Full screen until you end it · always temporary, never permanent</small></span></button>
+            <button class="glass widget tk-widget tk-on" data-action="end-takeover"><span class="tk-ic">⛶</span><span><b>Temporary takeover is on — tap to end</b><small>Or press ⏻ Exit, or type <code>application exit</code> in Terminal</small></span></button>
           </div>
           <div id="appgrid" class="appgrid"></div>
         </div>
@@ -178,6 +181,7 @@
             <button class="cc-tile" data-action="set-mode" data-mode="tablet"><span>📲</span><small>Tablet</small></button>
             <button class="cc-tile" data-action="set-mode" data-mode="laptop"><span>💻</span><small>Laptop</small></button>
             <button class="cc-tile" data-action="power"><span>⏻</span><small>Power</small></button>
+            <button class="cc-wide cc-takeover" data-action="takeover-toggle"><span class="tk-off-l">⛶ Temporarily take over this device</span><span class="tk-on-l">⛶ End temporary takeover</span></button>
             <button class="cc-wide cc-danger" data-action="toggle-exit">⏏ Exit Blockvile Plus OS</button>
           </div>
         </div>
@@ -229,6 +233,7 @@
     </div>
   </div>
 
+  <script src="js/build.js"></script>
   <script src="js/config.js"></script>
   <script src="js/lib.js"></script>
   <script src="js/android.js"></script>
@@ -237,6 +242,9 @@
   <script src="js/apps-store.js"></script>
   <script src="js/apps-video.js"></script>
   <script src="js/apps-help.js"></script>
+  <script src="js/accounts.js"></script>
+  <script src="js/updates.js"></script>
+  <script src="js/apps-sim-ai.js"></script>
   <script src="js/os.js"></script>
 </body>
 </html>
