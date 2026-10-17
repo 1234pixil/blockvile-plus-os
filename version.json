@@ -1,0 +1,127 @@
+{
+ "version": "3.10",
+ "build": "50e35483d131",
+ "native": 1,
+ "released": "2026-10-17",
+ "notes": [
+  "Updates are manual: an Update available card appears and nothing installs until you tap Update now",
+  "Feedback now reaches the developer's inbox directly (no email app needed)"
+ ],
+ "files": [
+  {
+   "path": "css/style.css",
+   "sha256": "1ec2228c233da4dbcaf73e218ba72d7404137df9dac21d3659e0482d3da8ff0b",
+   "size": 57099
+  },
+  {
+   "path": "icons/apple-touch-icon.png",
+   "sha256": "fcb5879a8c14353b73d17049a90ebc626777e67f7bbd0a24021361b9ce12a1ef",
+   "size": 3381
+  },
+  {
+   "path": "icons/icon-192.png",
+   "sha256": "da9684bbc1c589a4056a62cdef06237f4be7a41b8fc33cc2bdd37c446a94ab4a",
+   "size": 4382
+  },
+  {
+   "path": "icons/icon-512.png",
+   "sha256": "7a3ca42fc0f6e225c8abf7b8801a5e5998ea484411352115dda3ecbab564a2f5",
+   "size": 19303
+  },
+  {
+   "path": "icons/logo.svg",
+   "sha256": "d0a148b58022adc42def03045e27616c099ec3dc8d38cdd91238e2369f6c39b7",
+   "size": 563
+  },
+  {
+   "path": "icons/maskable-512.png",
+   "sha256": "bb279867305b86ba86dff656f1c5968e28d2e8e2308adf8737862ee9183a7686",
+   "size": 14299
+  },
+  {
+   "path": "index.html",
+   "sha256": "a04bdbc0c6474f913a11382f377e2b07f56422f58bbd0afbffcebb8bbc060a34",
+   "size": 14086
+  },
+  {
+   "path": "js/accounts.js",
+   "sha256": "35363d0cf5fc27605efc71bc7e95dd1b2ed8eea5e6ad338de044dea58827fcce",
+   "size": 26766
+  },
+  {
+   "path": "js/android.js",
+   "sha256": "077c0e1f946f8729dc8e3c7871ddcb6ffe622a64b12e4d15a9e38b31cf3309bf",
+   "size": 12947
+  },
+  {
+   "path": "js/apps-help.js",
+   "sha256": "c81912ae23e62f1499a11c41248012e98efe1feae7292c361497f31951b11ced",
+   "size": 33672
+  },
+  {
+   "path": "js/apps-media.js",
+   "sha256": "21533caeb1bb926940b1ced3d8940ffa702ba6b034149a44cf42b3637fbd42be",
+   "size": 28224
+  },
+  {
+   "path": "js/apps-sim-ai.js",
+   "sha256": "7ab87b6aeca9195ca2e241fa146a32adc1fd3a2959c92f7d3343f4c01d05441b",
+   "size": 20166
+  },
+  {
+   "path": "js/apps-store.js",
+   "sha256": "8d99ab54efa1969b51bdd146093cb55febe26ec334f3810547db8dc5a93dfea3",
+   "size": 43098
+  },
+  {
+   "path": "js/apps-video.js",
+   "sha256": "906b257686ce242d9e06c2b3cc5642426fecc150556ae1050c06b43a51022826",
+   "size": 12550
+  },
+  {
+   "path": "js/apps.js",
+   "sha256": "7eca0ea61512222aaf903442c3deb0c3d819035737e7b4f8f0873ef8ba67e197",
+   "size": 55937
+  },
+  {
+   "path": "js/build.js",
+   "sha256": "1ed4af5e8362cb5120175a83d4cc2c1e603bb0559b0fd409e43687d98041fe09",
+   "size": 121
+  },
+  {
+   "path": "js/config.js",
+   "sha256": "0a32773eb5fa80104758a96709e2c6575b7b6dc2e1e1c6bceb4e7ad2cdca7bc4",
+   "size": 1862
+  },
+  {
+   "path": "js/lib.js",
+   "sha256": "14254289e39e1979ebab43e05cfa483cae13ccb12dc6737afb1459b109dd18be",
+   "size": 11426
+  },
+  {
+   "path": "js/os.js",
+   "sha256": "01ba19e4c1cf778d8cfdd483ca3d9417371e74d63a89bb21734a75a25d0e488b",
+   "size": 60011
+  },
+  {
+   "path": "js/updates.js",
+   "sha256": "03f585f6f7a98796fe090259e0aa4b5cf6b4cc27b25b1e498c1c6735ef9762f7",
+   "size": 13312
+  },
+  {
+   "path": "manifest.json",
+   "sha256": "f6ce9f9c27dd7b49b06fe9e9f9515cceacc8e239d8d74c25155d5751391fdb23",
+   "size": 1337
+  },
+  {
+   "path": "privacy.html",
+   "sha256": "b9d9bec1fbd147455d6e18143f4fde0fc02c67c014897fd7f786cb69201d4bc7",
+   "size": 9776
+  },
+  {
+   "path": "sw.js",
+   "sha256": "36746d20767a5e5373d0c299f7171487c87b8516514849733f37c91ffb0b771d",
+   "size": 2812
+  }
+ ]
+}
