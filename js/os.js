@@ -22,10 +22,10 @@
     theme: "light", autoTheme: false, mode: guessMode(), wall: 0, wallImg: false, exited: false,
     accent: ACCENTS[0], volume: 60, brightness: 100, flags: {}, pin: "", autolock: 0, use24h: true,
     username: "User", removed: [], dock: APPS.filter(a => a.dock).map(a => a.id), powered: true,
-    // Full-device mode (browser): fill the screen, keep it awake, capture the keyboard until Exit. Off by default inside other pages.
-    fullDevice: !BV.embedded, haptics: matchMedia("(pointer: coarse)").matches, clicks: false,
+    haptics: matchMedia("(pointer: coarse)").matches, clicks: false,
   };
   const state = Object.assign({}, defaults, store.get("state", {}));
+  delete state.fullDevice; // older versions saved a takeover setting; takeover is now always temporary and never saved
   state.flags = Object.assign({}, state.flags);
   // Apps marked defaultOff start uninstalled (only the first time the OS sees them)
   const applyDefaultOff = () => { state.known = state.known || [];
@@ -86,10 +86,10 @@
     state.exited = !state.exited; save(); closeOverlays();
     tellParent(state.exited ? "exit" : "enter");
     if (state.exited) {
-      leaveFullDevice();
+      endTakeover(true);
       if (launchedAsApp && !BV.embedded) { try { window.close(); } catch { } }   // installed app: close its window → back to the desktop / phone
       updateHost();
-    } else { boot(); enterFullDevice(); }
+    } else boot();
     apply();
   }
   // Pages that embed Blockvile in an <iframe> hear about Exit / re-entry and can react (e.g. hide the frame)
@@ -100,35 +100,64 @@
     if (e.data.type === "blockvile:enter" && state.exited) toggleExit();
   });
 
-  /* ================= Full-device mode (browser / installed app) =================
-     While Blockvile runs it takes over the whole screen: full screen with the browser's bars hidden,
-     the screen kept awake, system keys like Esc captured, and a warning before the page is closed.
-     Only the Exit button hands the device back. (In the Android app, the native side does this.) */
-  let wakeLock = null, fdHinted = false;
-  const fdActive = () => state.fullDevice && !state.exited && !BV.android?.available && state.powered;
-  async function enterFullDevice() {
-    if (!fdActive()) return;
+  /* ================= Temporary takeover =================
+     Starts ONLY when the user presses "Temporarily let Blockvile take over this device".
+     While it runs, Blockvile acts as the device's system: full screen with the browser's bars hidden,
+     the screen kept awake, keys like Esc captured, and a warning before the page is closed.
+     It is never saved and never permanent: it ends with Exit, the End button, the Terminal command
+     `application exit`, or when the page/app is closed or the device restarts.
+     (In the Android app the native side does the same with a temporary home screen.) */
+  let takeover = false, wakeLock = null;
+  const nativeTakeover = () => !!(BV.android?.available && BV.android.takeover().active);
+  const isTakeover = () => BV.android?.available ? nativeTakeover() : takeover;
+  const tkActive = () => takeover && !state.exited && state.powered;
+  function showTakeover() {
+    const on = isTakeover();
+    root.classList.toggle("takeover", on);
+    $$('[data-action="takeover-toggle"]').forEach(el => el.classList.toggle("on", on));
+    window.dispatchEvent(new Event("bv:changed"));
+  }
+  async function grabDevice() {
+    if (!tkActive()) return;
     try { if (!document.fullscreenElement && document.fullscreenEnabled) await document.documentElement.requestFullscreen({ navigationUI: "hide" }); } catch { }
     try { if (document.fullscreenElement && navigator.keyboard?.lock) await navigator.keyboard.lock(); } catch { }
     try { if (!wakeLock && navigator.wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } } catch { }
-    if (document.fullscreenElement && !fdHinted) { fdHinted = true; setTimeout(() => toast(isTouch ? "Blockvile is using the whole screen — press ⏻ Exit to leave" : "Blockvile is using the whole screen — press ⏻ Exit or Ctrl+Shift+E to leave"), 400); }
   }
-  function leaveFullDevice() {
+  function releaseDevice() {
     try { navigator.keyboard?.unlock(); } catch { }
     try { wakeLock?.release(); } catch { } wakeLock = null;
     try { if (document.fullscreenElement) document.exitFullscreen(); } catch { }
   }
-  // Browsers only allow full screen after a tap or key press, so (re)enter on the next one
-  const fdGesture = e => { if (fdActive() && !document.fullscreenElement && document.fullscreenEnabled && !e.target.closest?.("#host, #off, .bv-dialog, [data-action='toggle-exit'], [data-power='exit']")) enterFullDevice(); };
-  document.addEventListener("pointerup", fdGesture, true);
-  document.addEventListener("keyup", fdGesture, true);
-  document.addEventListener("visibilitychange", () => { if (!document.hidden && fdActive() && !wakeLock && navigator.wakeLock) navigator.wakeLock.request("screen").then(l => { wakeLock = l; l.addEventListener("release", () => { wakeLock = null; }); }).catch(() => { }); });
-  window.addEventListener("beforeunload", e => { if (fdActive() && !launchedAsApp) { e.preventDefault(); e.returnValue = ""; } });
-  function setFullDevice(on) {
-    state.fullDevice = !!on; save();
-    if (state.fullDevice) { enterFullDevice(); toast("⛶ Full-device mode on — only Exit gives the device back"); }
-    else { leaveFullDevice(); toast("Full-device mode off"); }
+  async function startTakeover() {
+    closeOverlays();
+    if (BV.android?.available) { BV.android.startTakeover(); return; }   // Android: temporary home screen, Android asks first
+    if (takeover) return toast("⛶ The temporary takeover is already on");
+    if (state.exited) { state.exited = false; save(); apply(); }
+    takeover = true; showTakeover(); tellParent("takeover-start");
+    await grabDevice();
+    const full = !!document.fullscreenElement;
+    toast(full ? `⛶ Temporary takeover on — end it with ⏻ Exit${isTouch ? "" : ", Ctrl+Shift+E"} or "application exit" in Terminal`
+      : isIOS ? "⛶ Temporary takeover on — iPhone browsers can't go full screen; add Blockvile to your Home Screen for that"
+      : BV.embedded ? "⛶ Temporary takeover on — this page doesn't allow full screen, so Blockvile stays in its frame"
+      : "⛶ Temporary takeover on — your browser didn't allow full screen; tap anywhere to try again");
   }
+  // Ends the takeover. Returns true if one was running. (Android: hands the phone back to its own home screen.)
+  function endTakeover(quiet) {
+    if (BV.android?.available) { if (!nativeTakeover()) return false; BV.android.exitToSystem(); return true; }
+    if (!takeover) return false;
+    takeover = false; releaseDevice(); showTakeover(); tellParent("takeover-end");
+    if (!quiet) toast("Temporary takeover ended — your device is back to normal");
+    return true;
+  }
+  const toggleTakeover = () => isTakeover() ? endTakeover() : startTakeover();
+  // Browsers only allow full screen after a tap or key press, so while the takeover runs, re-enter on the next one
+  const tkGesture = e => { if (tkActive() && !document.fullscreenElement && document.fullscreenEnabled && !e.target.closest?.("#host, #off, .bv-dialog, [data-action='toggle-exit'], [data-power='exit'], [data-action='end-takeover'], [data-action='takeover-toggle']")) grabDevice(); };
+  document.addEventListener("pointerup", tkGesture, true);
+  document.addEventListener("keyup", tkGesture, true);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && tkActive() && !wakeLock && navigator.wakeLock) navigator.wakeLock.request("screen").then(l => { wakeLock = l; l.addEventListener("release", () => { wakeLock = null; }); }).catch(() => { }); });
+  window.addEventListener("beforeunload", e => { if (tkActive()) { e.preventDefault(); e.returnValue = ""; } });
+  window.addEventListener("bv:takeover", showTakeover);   // Android: takeover started or ended natively
+  window.addEventListener("bv:takeover-refresh", showTakeover);
 
   /* ================= Touch feedback ================= */
   document.addEventListener("pointerdown", e => {
@@ -407,7 +436,7 @@
   let tt;
   function toast(msg) { const t = $("#toast"); t.className = ""; t.textContent = msg; void t.offsetWidth; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 1800); }
   function banner(n) { const t = $("#toast"); t.className = "banner"; t.innerHTML = `<span style="font-size:22px">${n.icon}</span><span><b>${esc(n.title)}</b><br><small>${esc(n.text)}</small></span>`; void t.offsetWidth; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(() => t.classList.remove("on"), 3500); t.onclick = () => openNotif(n); }
-  function openNotif(n) { if (!n) return; if (n.action === "install") installApp(); else if (n.app) open(n.app); }
+  function openNotif(n) { if (!n) return; if (n.action === "update") open("updates"); else if (n.action === "install") installApp(); else if (n.app) open(n.app); }
 
   /* ================= OSD (volume / brightness) ================= */
   let ot;
@@ -426,7 +455,7 @@
   let afterUnlock = null;
   function lock() { closeOverlays(); $("#lock").classList.remove("open", "pin"); $("#pinpad").hidden = true; pinBuf = ""; drawPin(); }
   function unlock(then) {
-    enterFullDevice();
+    grabDevice();
     afterUnlock = typeof then === "function" ? then : null;
     if (state.pin) { $("#lock").classList.add("pin"); $("#pinpad").hidden = false; return; }
     finishUnlock();
@@ -519,8 +548,8 @@
     const st = installStatus(), url = window.BV_CONFIG?.installUrl || "";
     const perks = `<ul class="inst-perks"><li>📲 Its own icon on your home screen or desktop</li><li>⛶ Opens full screen, like a real system</li><li>✈ Works offline</li><li>⏏ <b>Exit</b> closes it and takes you straight back to your device</li></ul>`;
     const body = {
-      android: `<p>✅ Blockvile is installed as an app on this phone.</p><p class="muted">Want Blockvile every time you press Home? Make it your home screen — <b>Exit</b> still takes you back to your usual one.</p>
-        <div class="inst-btns"><button class="btn" data-inst="launcher">Use as home screen</button></div>`,
+      android: `<p>✅ Blockvile is installed as an app on this phone.</p><p class="muted">Want Blockvile to run the whole phone for a while? Start a <b>temporary takeover</b> — it ends with <b>Exit</b>, <code>application exit</code> in Terminal, or when the phone restarts.</p>
+        <div class="inst-btns"><button class="btn" data-inst="takeover">⛶ Temporarily take over this phone</button></div>`,
       installed: `<p>✅ You're using the installed Blockvile app.</p><p class="muted">Pressing <b>Exit</b> closes Blockvile and takes you back to your device. Open it again from its icon.</p>`,
       prompt: `<p>Install Blockvile Plus on this device:</p>${perks}<div class="inst-btns"><button class="btn" data-inst="prompt">📲 Install</button></div>`,
       ios: `<p>Add Blockvile to your Home Screen:</p>${perks}<ol class="inst-steps"><li>Tap the <b>Share</b> button <span class="inst-ic">⎙</span> in Safari's toolbar.</li><li>Scroll and tap <b>Add to Home Screen</b> <span class="inst-ic">⊞</span>.</li><li>Tap <b>Add</b>. Blockvile appears with your other apps.</li></ol>
@@ -541,7 +570,7 @@
   $("#install-box").addEventListener("click", async e => {
     const k = e.target.closest("[data-inst]")?.dataset.inst; if (!k) return;
     if (k === "close") return closeOverlays();
-    if (k === "launcher") return BV.android.chooseLauncher();
+    if (k === "takeover") return startTakeover();
     if (k === "newtab") return window.open(window.BV_CONFIG?.installUrl || location.href.split("#")[0], "_blank", "noopener");
     if (k === "prompt" && deferredPrompt) {
       const p = deferredPrompt; deferredPrompt = null;
@@ -563,7 +592,9 @@
     ["🌙", "Toggle dark mode", "dark theme night", toggleDark],
     ["📱", "Phone mode", "mode phone", () => setMode("phone")], ["📲", "Tablet mode", "mode tablet", () => setMode("tablet")], ["💻", "Laptop mode", "mode laptop desktop", () => setMode("laptop")],
     ["🔒", "Lock screen", "lock", () => lock()], ["↻", "Restart", "restart reboot", () => power("restart")], ["⏻", "Shut down", "power off shutdown", () => power("shutdown")],
-    ["⏏", "Exit Blockvile Plus OS", "exit quit leave", toggleExit], ["🔕", "Do not disturb", "dnd silent quiet", () => setFlag("dnd")],
+    ["⏏", "Exit Blockvile Plus OS", "exit quit leave", toggleExit],
+    ["⛶", "Temporarily let Blockvile take over this device", "takeover take over full screen whole device kiosk temporary", startTakeover],
+    ["⛶", "End the temporary takeover", "end stop takeover give back device application exit", () => { if (!endTakeover()) toast("No temporary takeover is running"); }], ["🔕", "Do not disturb", "dnd silent quiet", () => setFlag("dnd")],
     ["🌅", "Night light", "night light warm", () => setFlag("nightLight")], ["🔋", "Battery saver", "battery saver power", () => setFlag("saver")],
     ["✈", "Airplane mode", "airplane flight", () => setFlag("airplane")], ["⟳", "Rotate screen", "rotate landscape portrait", () => setFlag("landscape")],
     ["⌨", "Keyboard shortcuts", "help shortcuts keys", () => showHelp()], ["⛶", "Full screen", "fullscreen", () => fullscreen()],
@@ -635,7 +666,7 @@
     ], e.clientX, e.clientY);
   });
   const MENUS = {
-    system: () => [["ℹ About Blockvile Plus", () => open("about")], ["⚙ Settings…", () => open("settings")], ["🛍 App Store…", () => open("store")], ["📲 Install on this device…", installApp], "-",
+    system: () => [["ℹ About Blockvile Plus", () => open("about")], [isTakeover() ? "⛶ End temporary takeover" : "⛶ Temporarily take over this device…", toggleTakeover], ["⚙ Settings…", () => open("settings")], ["🛍 App Store…", () => open("store")], ["📲 Install on this device…", installApp], "-",
       ["🔒 Lock screen", lock], ["🌙 Sleep", () => power("sleep")], ["↻ Restart…", () => power("restart")], ["⏻ Shut down…", () => power("shutdown")], "-", ["⏏ Exit OS", toggleExit]],
     app: () => { const t = topWin(); return [["📄 New text file", () => open("editor", { path: "" })], ["🔍 Search…", spotlight], "-",
       ["Minimise window", () => t && minimize(t)], ["Close window", () => t && close(t.dataset.app)], ["Close all windows", () => closeAll()]]; },
@@ -659,7 +690,7 @@
     const o = e.target.closest("[data-open]"); if (o && !e.target.closest(".win")) return open(o.dataset.open);
     const a = e.target.closest("[data-action]"); if (!a) return;
     ({
-      "toggle-dark": toggleDark, "toggle-exit": toggleExit, "cycle-mode": cycleMode, "set-mode": () => setMode(a.dataset.mode),
+      "toggle-dark": toggleDark, "toggle-exit": toggleExit, takeover: startTakeover, "end-takeover": () => endTakeover(), "open-updates": () => open("updates"), "takeover-toggle": toggleTakeover, "cycle-mode": cycleMode, "set-mode": () => setMode(a.dataset.mode),
       "toggle-flag": () => setFlag(a.dataset.flag), unlock: () => unlock(),
       "lock-torch": () => setFlag("torch"), "lock-camera": () => unlock(() => open("camera")),
       "open-cc": () => openShade("#cc"), "open-notif": () => openShade("#notif"),
@@ -717,7 +748,7 @@
     running: () => [...wins.entries()].map(([id, w]) => ({ id, app: appById(id), started: w.started })), bootTime,
     weather, wxInfo, setVolume, setBrightness, showHelp, spotlight, ACCENTS, beep,
     handleBack, home: () => goHome(), installApp, installStatus, installLabel: () => INSTALL_LABEL[installStatus()], isInstalledApp: () => launchedAsApp, shortcuts: SHORTCUTS,
-    setFullDevice, enterFullDevice, isFullDeviceActive: () => fdActive() && !!document.fullscreenElement,
+    startTakeover, endTakeover, toggleTakeover, isTakeover,
     afterUnlock(fn) { if (isLocked()) unlockQueue.push(fn); else fn(); },
     enterFromSystem() { if (state.exited) { state.exited = false; save(); apply(); } },
     onBack(id, fn) { const w = wins.get(id); if (w) w.el.__back = fn; },
@@ -728,7 +759,7 @@
   if (BV.embedded) root.classList.add("embedded");
   if (state.exited && (launchedAsApp || BV.android?.available)) { state.exited = false; save(); }   // opening the app = coming back in
   if (state.exited) updateHost();
-  apply(); loadWallImg(); renderNotifs(); renderAll();
+  apply(); loadWallImg(); renderNotifs(); renderAll(); showTakeover();
   if (!state.powered) { $("#boot").classList.add("gone"); $("#off").classList.add("on"); }
   else if (!state.exited) boot(); else $("#boot").classList.add("gone");
   if (!store.get("welcomed", false)) {
@@ -737,6 +768,7 @@
   }
   weather();
   scheduler();
+  try { BV.android?.otaBooted?.(); } catch { }   // tells the Android app this (possibly just-updated) version started fine
   if (!store.persistent) setTimeout(() => notify({ app: "settings", icon: "💾", title: "Changes won't be saved", text: "This page isn't allowed to store data, so Blockvile resets when you close it.", sound: false }), 3200);
   // Installable app + offline cache (needs a website: http/https, not a file, not inside another page)
   (async () => {
