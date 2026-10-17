@@ -27,25 +27,47 @@
         <li>Drag windows by their title bar and resize them from the corner.</li>
         <li><b>Snap:</b> drag a window to the left or right edge to fill half the screen, or to the top to maximise. <kbd>Alt</kbd>+arrow keys do the same.</li>
         <li>Right-click the desktop or an app for more options.</li></ul>` },
-    { id: "exit", icon: "⏏", title: "Exit Blockvile and use your device", tags: "exit quit close leave original os normal home screen launcher back", body: () => `
-      <p>Press <b>Exit</b> any time — the red ⏻ button in the corner, <b>Exit Blockvile Plus OS</b> in the Control Centre, or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd>.</p>
+    { id: "exit", icon: "⏏", title: "Exit Blockvile and use your device", tags: "exit application exit quit close leave original os normal home screen launcher back", body: () => `
+      <p>Press <b>Exit</b> any time — the red ⏻ button in the corner, <code>application exit</code> in the Terminal, <b>Exit Blockvile Plus OS</b> in the Control Centre, or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd>.</p>
       <h4>What happens when you exit</h4>
-      <ul><li><b>Android app:</b> you go straight back to your phone's usual home screen. If Blockvile is your home screen, pressing Home keeps taking you to your usual one until you open Blockvile again from its icon.</li>
+      <ul><li><b>Android app:</b> you go straight back to your phone's usual home screen. If a temporary takeover was on, it ends and Home goes to your usual home screen again.</li>
         <li><b>Installed app</b> (home-screen or desktop icon): Blockvile's window closes and you're back on your device.</li>
         <li><b>In a browser tab:</b> Blockvile closes and leaves full screen. You can close the tab, go back to the previous page, or jump back in.</li>
         <li><b>Inside another website:</b> Blockvile closes and the rest of the page works as normal.</li></ul>
       <div class="tip">Nothing is lost when you exit — your apps, files and settings are still there next time.</div>` },
-    { id: "fulldevice", icon: "⛶", title: "Full-device mode", tags: "full screen whole device takeover kiosk system home screen launcher take over", body: () => `
-      <p>In full-device mode Blockvile acts as your device's system until you press <b>Exit</b>.</p>
-      <h4>📱 Android app</h4><ul><li>Blockvile becomes your <b>home screen</b>: pressing Home always comes back to Blockvile, and all your phone's apps are in the <b>Android Apps</b> drawer.</li>
-        <li><b>Exit</b> hands the phone back to its usual home screen straight away. Open Blockvile again from its icon to switch back.</li>
-        <li>The Control Centre controls the real phone: brightness, volume and torch change for real, and Wi-Fi, Bluetooth, data and airplane mode open the phone's own switches.</li>
-        <li>Alarms and timers are also set on your phone's own clock, so they ring even when Blockvile is closed.</li></ul>
+    { id: "fulldevice", icon: "⛶", title: "Temporary takeover", tags: "temporary takeover full screen whole device kiosk system take over application exit terminal", body: () => `
+      <p>Tap <b>Temporarily let Blockvile take over this device</b> (on the home screen, in the Control Centre or in Settings) and Blockvile acts as your device's system — <b>only until you end it</b>. It is never permanent, never starts by itself, and is never saved.</p>
+      <h4>How to end it</h4><ul><li>Type <code>application exit</code> in the <b>Terminal</b>.</li>
+        <li>Or press the red <b>⏻ Exit</b> button, or tap the takeover button again.</li>
+        <li>Reloading the page, closing the app or (on Android) restarting the phone also ends it.</li></ul>
+      <h4>📱 Android app</h4><ul><li>Android asks first. While it's on, pressing Home comes back to Blockvile and all your phone's apps are in the <b>Android Apps</b> drawer.</li>
+        <li>Ending it hands the phone straight back to its own home screen.</li>
+        <li>The Control Centre controls the real phone: brightness, volume and torch change for real, and Wi-Fi, Bluetooth, data and airplane mode open the phone's own switches.</li></ul>
       <h4>🌐 Browser or installed app</h4><ul><li>Blockvile fills the whole screen, hides the browser's bars, keeps the screen awake and captures keys such as <kbd>Esc</kbd>.</li>
-        <li>If you leave full screen, the next tap brings it back. Closing the tab asks you first.</li>
-        <li><b>Exit</b> turns all of this off and gives your browser back.</li></ul>
-      <div class="tip">Turn it on or off in <b>Settings → Full-device mode</b>.</div>
-      ${btnOpen("settings", "⚙️ Open Settings")}` },
+        <li>If you leave full screen, the next tap brings it back — until you end the takeover. Closing the tab asks you first.</li></ul>
+      <div class="tip">Terminal commands: <code>application takeover</code>, <code>application status</code>, <code>application exit</code>.</div>
+      ${btnOpen("terminal", "⌨️ Open Terminal")}` },
+    { id: "account", icon: "👤", title: "Accounts, Digital SIM and AI", tags: "account sign in login google microsoft email supabase digital sim number wifi charge messages ai assistant link device gmail outlook onedrive drive", body: () => `
+      <p>Signing in is optional. Everything else in Blockvile works without it.</p>
+      <h4>👤 Sign in</h4><ul><li>Use <b>Google</b>, <b>Microsoft</b> or <b>any email address</b>.</li>
+        <li>Under <b>This device</b> you can link this device to your account, and unlink it later.</li>
+        <li>Tap <b>Link Google / Microsoft mail, calendar &amp; files</b> to see unread mail, events and recent files. It's read-only and only for this visit.</li>
+        <li>The tiles open Gmail, Drive, Outlook, OneDrive, Teams and more. In the Android app they open the real app if it's installed.</li></ul>
+      <h4>📶 Digital SIM</h4><ul><li>Only available while you're signed in.</li>
+        <li>You get a Blockvile number like <b>BV 4821 7730</b> to message other Blockvile users.</li>
+        <li>It <b>charges 1% a minute while you're on Wi-Fi</b>. Each message uses 2%.</li>
+        <li>It also <b>banks Wi-Fi data</b> (5 MB a minute, up to 500 MB). When Wi-Fi is off or unavailable, messages spend 2 MB each from it. With no connection they wait and send when you're back online.</li>
+        <li>It is <b>not a phone-company SIM</b>: no calls or texts to normal numbers. The banked data is an allowance for Blockvile's own messages — it can't create internet.</li></ul>
+      <h4>✨ Blockvile AI</h4><ul><li>Say “open Notes”, “dark mode on” or “switch to laptop mode” — works without internet.</li>
+        <li>Sign in to ask general questions.</li></ul>
+      ${btnOpen("accounts", "👤 Open Accounts")}${btnOpen("ai", "✨ Open Blockvile AI")}` },
+    { id: "update", icon: "⬆️", title: "Updating Blockvile", tags: "software update app update upgrade new version software update install latest notification", body: () => `
+      <p>You don't need to download Blockvile again. Updates install in place and keep your apps, files and settings.</p>
+      <ul><li>You get an <b>Update available</b> notification when a new version is ready.</li>
+        <li>Open the <b>Software Update</b> app (it's in your app list, and Settings has a shortcut) and tap <b>Update now</b>. Tap <b>Check for updates</b> any time — it's also right in <b>Settings → Software update</b>, or type <code>update</code> in the Terminal (then <code>update now</code> to install).</li>
+        <li>Updates are <b>manual</b>: Blockvile shows an <b>Update available</b> card on your home screen, but nothing installs until you tap <b>Update now</b>.</li>
+        <li>In the Android app, some updates change the app itself. Then the button says <b>Update on Google Play</b>.</li></ul>
+      ${btnOpen("updates", "⬆️ Open Software Update")}` },
     { id: "install", icon: "📲", title: "Install Blockvile on your device", tags: "install download app home screen desktop pwa add icon offline iphone android windows mac chromebook", body: os => `
       <p>Install Blockvile and it gets its own icon, opens full screen and works offline — like any other app.</p>
       <p><b>On this device:</b> ${esc(os.installLabel())}</p>
@@ -53,7 +75,7 @@
       <h4>How it works on each device</h4>
       <ul><li><b>Android, Windows, Mac, Chromebook (Chrome or Edge):</b> tap <b>Install</b>, or use the browser menu → <i>Install app</i>.</li>
         <li><b>iPhone and iPad:</b> in Safari tap <b>Share</b> → <b>Add to Home Screen</b>.</li>
-        <li><b>Android app:</b> the Blockvile app on Google Play is already installed — you can even make it your home screen.</li></ul>
+        <li><b>Android app:</b> the Blockvile app on Google Play is already installed — and you can let it temporarily take over the phone.</li></ul>
       <div class="tip">Install needs Blockvile to be opened from a website. If you opened it from a file, it still works offline — just keep the file.</div>` },
     { id: "look", icon: "◐", title: "Dark mode, wallpapers and colours", tags: "dark light theme wallpaper colour color accent night light brightness", body: () => `
       <ul><li><b>Dark mode:</b> the 🌙 button in the corner, the Control Centre, or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>. Settings can follow your device's theme automatically.</li>
@@ -180,13 +202,33 @@
   const asText = fb => [`Blockvile Plus feedback — ${TYPES[fb.type][1]}${fb.rating ? ` — ${"★".repeat(fb.rating)}${"☆".repeat(5 - fb.rating)}` : ""}`, "", fb.message,
     fb.contact ? `\nReply to: ${fb.contact}` : "", fb.device ? `\n— Device —\n${devText(fb.device)}` : ""].join("\n").trim();
 
-  async function postFeedback(fb) {
+  // Feedback goes out by every route that's set up, and counts as sent if ANY of them takes it:
+  //  1) the form service in config.js (arrives in the publisher's inbox, no email app needed)
+  //  2) the publisher's Supabase "feedback" table (also works for people who aren't signed in)
+  async function viaForm(fb) {
     const url = CFG().feedback?.endpoint; if (!url) return false;
     try {
       const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ type: TYPES[fb.type][1], rating: fb.rating || "", message: fb.message, email: fb.contact || "", device: fb.device ? devText(fb.device) : "", app: "Blockvile Plus " + ver(), _subject: `Blockvile feedback: ${TYPES[fb.type][1]}` }) });
-      return r.ok;
+        body: JSON.stringify({ type: TYPES[fb.type][1], rating: fb.rating || "", message: fb.message, email: fb.contact || "", device: fb.device ? devText(fb.device) : "", app: "Blockvile Plus " + ver(),
+          _subject: `Blockvile feedback: ${TYPES[fb.type][1]}`, _template: "table", _captcha: "false", ...(fb.contact ? { _replyto: fb.contact } : {}) }) });
+      if (!r.ok) return false;
+      try { const j = await r.json(); if (j && (j.success === false || j.success === "false")) return false; } catch { }
+      return true;
     } catch { return false; }
+  }
+  async function viaSupabase(fb) {
+    const A = window.BV.auth; if (!A?.configured?.()) return false;
+    try {
+      const c = await A.client();
+      const { error } = await c.from("feedback").insert({ type: TYPES[fb.type][1], rating: fb.rating || null, message: fb.message.slice(0, 4000), contact: (fb.contact || "").slice(0, 200) || null,
+        device: fb.device ? devText(fb.device).slice(0, 1500) : null, app_version: ver() });
+      return !error;
+    } catch { return false; }
+  }
+  async function postFeedback(fb) {
+    if (!CFG().feedback?.endpoint && !window.BV.auth?.configured?.()) return false;
+    const [a, b] = await Promise.all([viaForm(fb), viaSupabase(fb)]);
+    return a || b;
   }
   function openEmail(fb) {
     const to = CFG().feedback?.email; if (!to) return false;
@@ -211,7 +253,7 @@
       let view = "form", type = args?.type || "idea", rating = 0, last = null, includeDev = true;
       let draft = store.get("feedbackDraft", { message: "", contact: "" });
       if (args?.text) draft.message = args.text + (draft.message && !draft.message.startsWith(args.text) ? "" : "");
-      const configured = () => !!(CFG().feedback?.endpoint || CFG().feedback?.email);
+      const configured = () => !!(CFG().feedback?.endpoint || CFG().feedback?.email || window.BV.auth?.configured?.());
       const draw = () => {
         if (view === "done") {
           const s = last.status;
@@ -269,7 +311,7 @@
         if (contact && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact)) { os.toast("That email address doesn't look right"); return; }
         const fb = { id: uid(), time: Date.now(), type, rating, message, contact, device: includeDev ? deviceInfo() : null, status: "saved" };
         const btn = body.querySelector("[data-send]"); if (btn) { btn.disabled = true; btn.textContent = "Sending…"; }
-        if (CFG().feedback?.endpoint) fb.status = (await postFeedback(fb)) ? "sent" : (CFG().feedback?.email && openEmail(fb) ? "email" : "queued");
+        if (CFG().feedback?.endpoint || window.BV.auth?.configured?.()) fb.status = navigator.onLine === false ? "queued" : (await postFeedback(fb)) ? "sent" : (CFG().feedback?.email && openEmail(fb) ? "email" : "queued");
         else if (openEmail(fb)) fb.status = "email";
         saveHistory([fb, ...history()]);
         draft = { message: "", contact }; store.set("feedbackDraft", draft);
