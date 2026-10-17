@@ -27,7 +27,7 @@
   <header><img src="icons/logo.svg" alt=""><h1>Privacy Policy</h1></header>
   <p class="muted">Blockvile Plus OS · Last updated: <span class="fill">[date you publish]</span></p>
 
-  <p>Blockvile Plus OS (“Blockvile”, “the app”) is a home screen and app collection for Android and the web. This policy explains what information the app uses and where it goes. In short: <b>Blockvile has no accounts, no ads and no analytics, and the developer does not receive your data.</b> What you create stays on your device.</p>
+  <p>Blockvile Plus OS (“Blockvile”, “the app”) is a home screen and app collection for Android and the web. This policy explains what information the app uses and where it goes. In short: <b>no ads and no analytics.</b> Without an account, what you create stays on your device. If you choose to <b>sign in</b>, the account details below are stored with the service that runs sign-in for this app (Supabase).</p>
 
   <h2>Information kept on your device</h2>
   <p>These are stored only in the app's private storage on your device. They are never sent to the developer:</p>
@@ -39,6 +39,17 @@
   </ul>
   <p>You can erase all of it at any time in <b>Settings → Erase everything &amp; reset</b>, or by uninstalling the app.</p>
 
+  <h2>If you sign in (optional)</h2>
+  <p>Signing in is optional and unlocks the Digital SIM, Blockvile AI answers and device linking. When you sign in, these are stored on the app's Supabase project (a hosted database), protected so that each account can only read its own data:</p>
+  <ul>
+    <li>Your <b>email address</b> and <b>name</b>, and a password (stored only as a secure hash) if you use email sign-in. If you use Google or Microsoft sign-in, we receive your email and name from them. We never see your Google or Microsoft password.</li>
+    <li>The <b>names of devices you link</b> to your account (such as “Pixel 8”) and when they were last used.</li>
+    <li>Your <b>Digital SIM</b>: a Blockvile number, its charge level, its banked Wi-Fi data amount, and the <b>text messages</b> you send to or receive from other Blockvile numbers. The sender and recipient can read a message.</li>
+    <li>What you ask <b>Blockvile AI</b> is sent to the AI service to be answered; Blockvile does not keep it on the server. Your chat history is kept on your device only.</li>
+  </ul>
+  <p><b>Google and Microsoft services:</b> if you tap “Link … mail, calendar &amp; files”, Google or Microsoft asks you to allow <b>read-only</b> access. Blockvile uses it only to show your unread mail count, next events and recent files on your own screen. That access is held in memory for the current visit only, is never saved or sent to the developer, and you can remove it any time in your Google or Microsoft account settings.</p>
+  <p>You can delete your account data by contacting us at the address below, and unlink devices yourself in Accounts. The Digital SIM is not a phone-company SIM and does not use your phone number.</p>
+
   <h2>Permissions and why they're used</h2>
   <table>
     <tr><th>Permission</th><th>Used for</th></tr>
@@ -49,8 +60,10 @@
     <tr><td>Notifications</td><td>Showing your reminders, alarms and other Blockvile notifications while it's in the background. Android asks you first.</td></tr>
     <tr><td>Set alarms</td><td>When you add an alarm or timer in Blockvile's Clock, it's also set in your phone's own Clock app so it rings even when Blockvile is closed. Blockvile can't read your other alarms.</td></tr>
     <tr><td>Vibration</td><td>Light touch feedback when you tap (you can turn it off in Settings).</td></tr>
-    <tr><td>Home screen (optional)</td><td>Only if you agree in Android's own prompt, Blockvile becomes your home screen until you press Exit.</td></tr>
+    <tr><td>Temporary home screen (optional)</td><td>Only when you tap the takeover button and agree in Android's own prompt, Blockvile becomes your home screen — temporarily, until you press Exit, type <code>application exit</code> or restart the phone. It is never permanent.</td></tr>
+    <tr><td>Receive boot-completed</td><td>Used only to end a temporary takeover when the phone restarts. Nothing else runs at start-up.</td></tr>
     <tr><td>Request uninstall</td><td>Lets you uninstall apps from the Blockvile drawer. Android always asks you to confirm.</td></tr>
+    <tr><td>Network state</td><td>Lets the Digital SIM tell whether you're on Wi-Fi, because it only charges on Wi-Fi. Nothing else is read.</td></tr>
     <tr><td>Internet</td><td>Weather, Maps, Browser, Cloud Music and opening app pages on Google Play.</td></tr>
   </table>
 
@@ -63,10 +76,13 @@
     <li><b>SoundCloud</b> (Cloud Music): SoundCloud's player loads when you play a link. <a href="https://soundcloud.com/pages/privacy" rel="noopener">soundcloud.com</a></li>
     <li><b>Google Play</b>: when you tap Install or search for Android apps, Blockvile opens Google Play, which handles the install. <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a></li>
     <li><b>YouTube</b> (Videos app): YouTube's player loads when you play a video. If you add your own YouTube API key for in-app search, your searches go to Google's YouTube service. <a href="https://www.youtube.com/t/privacy" rel="noopener">YouTube privacy</a></li>
-    <li><b>Feedback</b>: only when you press Send in the Feedback app. Your message, rating, optional email and (if you tick the box) basic device details go to the address or form service set up by the publisher.</li>
+    <li><b>Feedback</b>: only when you press Send in the Feedback app. Your message, rating, optional email and (if you tick the box) basic device details go to the publisher by e-mail through the FormSubmit service (<a href="https://formsubmit.co/" rel="noopener">formsubmit.co</a>) and, if the publisher uses Supabase, are saved in its database.</li>
+    <li><b>The publisher's website</b> (software updates): Blockvile asks it whether a newer version exists and downloads the new files. It receives the normal technical information any web request includes, such as your IP address.</li>
+    <li><b>Supabase</b> (sign-in, devices, Digital SIM): only if you sign in. <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a></li>
+    <li><b>Google and Microsoft</b> (sign-in and optional linking): only if you choose them. <a href="https://policies.google.com/privacy" rel="noopener">Google</a> · <a href="https://privacy.microsoft.com" rel="noopener">Microsoft</a></li>
     <li><b>Websites you choose</b> in the Browser or as web apps.</li>
   </ul>
-  <p>Blockvile does not sell, rent or share your information, and contains no advertising or tracking code.</p>
+  <p>Blockvile does not sell or rent your information, and contains no advertising or tracking code.</p>
 
   <h2>Children</h2>
   <p>Blockvile is not directed at children under 13 and includes an unrestricted web browser.</p>
@@ -78,7 +94,7 @@
   <p>If this policy changes, the new version will be posted on this page with a new date.</p>
 
   <h2>Contact</h2>
-  <p>Questions about privacy: <span class="fill">[your contact e-mail]</span></p>
+  <p>Questions about privacy: ethanabraham09092014@gmail.com</p>
 </main>
 </body>
 </html>
