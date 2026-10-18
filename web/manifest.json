@@ -18,8 +18,8 @@
     { "src": "icons/logo.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "shortcuts": [
-    { "name": "Videos", "url": "./?app=videos", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Blockvile Store", "url": "./?app=store", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "YouTube", "url": "./?app=videos", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Play Store", "url": "./?app=store", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Files", "url": "./?app=files", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Help", "url": "./?app=help", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
