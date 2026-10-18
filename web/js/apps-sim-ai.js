@@ -122,6 +122,33 @@
     }
   };
 
+  /* ================= shared helpers (used by the apps and the Terminal) ================= */
+  const MODELS = { fast: { name: "Fast", note: "quickest, lightest" }, balanced: { name: "Balanced", note: "good all-rounder (default)" }, smart: { name: "Smartest", note: "best answers, slower" } };
+  window.BV.ai = {
+    models: MODELS,
+    model: () => { const m = store.get("aiModel", "balanced"); return MODELS[m] ? m : "balanced"; },
+    setModel(m) { if (!MODELS[m]) throw new Error("choose one of: " + Object.keys(MODELS).join(", ")); store.set("aiModel", m); },
+    // messages = [{role, content}]; returns the AI's reply text
+    async cloud(messages) {
+      const auth = A();
+      if (!auth.configured()) return "I can run commands on your device without internet — try “open notes” or “dark mode on”. To answer other questions, the owner needs to connect Supabase (Accounts → Setup).";
+      if (!auth.signedIn()) return "Sign in (Accounts, or type 'signin' in the Terminal) to ask me general questions. I can still do device commands like “open notes” without signing in.";
+      const c = await auth.client();
+      const { data, error } = await c.functions.invoke(auth.settings().fn, { body: { model: window.BV.ai.model(), messages } });
+      if (error || !data?.reply) {
+        let why = ""; try { why = (await error?.context?.json?.())?.error || ""; } catch { }
+        return why || "I couldn't reach the AI. The AI function may not be deployed yet (see supabase/functions/ai).";
+      }
+      return data.reply;
+    },
+  };
+  window.BV.simApi = {
+    async rpc(fn, args) { const c = await A().client(); const { data, error } = await c.rpc(fn, args); if (error) throw new Error(error.message.replace(/^.*?: /, "")); return data; },
+    onWifi,
+    async status() { return this.rpc("sim_get"); },
+    async send(to, body) { return this.rpc("sim_send", { to_number: to, body, on_wifi: onWifi() }); },
+  };
+
   /* ================= Blockvile AI ================= */
   window.BV_APPS.push({
     id: "ai", name: "Blockvile AI", icon: "✨", bg: "linear-gradient(135deg,#a855f7,#ec4899)", cat: "System", size: [480, 580],
@@ -161,17 +188,7 @@
         else if (cmd === "exit" ) { os.endTakeover(); }
       }
 
-      async function cloud() {
-        if (!auth.configured()) return "I can run commands on your device without internet — try “open notes” or “dark mode on”. To answer other questions, the owner needs to connect Supabase (Accounts → Setup).";
-        if (!auth.signedIn()) return "Sign in (Accounts) to ask me general questions. I can still do device commands like “open notes” without signing in.";
-        const c = await auth.client();
-        const { data, error } = await c.functions.invoke(auth.settings().fn, { body: { messages: chat.slice(-12).map(m => ({ role: m.role, content: m.text })) } });
-        if (error || !data?.reply) {
-          let why = ""; try { why = (await error?.context?.json?.())?.error || ""; } catch { }
-          return why || "I couldn't reach the AI. The AI function may not be deployed yet (see supabase/functions/ai).";
-        }
-        return data.reply;
-      }
+      const cloud = () => window.BV.ai.cloud(chat.slice(-12).map(m => ({ role: m.role, content: m.text })));
 
       const bubble = m => `<div class="ai-b ${m.role === "user" ? "me" : ""}">${esc(m.text).replace(/\n/g, "<br>")}</div>`;
       const draw = () => {
@@ -181,7 +198,8 @@
           ${busy ? `<div class="ai-b typing">Thinking…</div>` : ""}
           ${pendingAction === "takeover" ? `<div class="ai-b"><button class="btn" data-go="takeover">Start temporary takeover</button> <button class="btn ghost" data-go="no">No thanks</button></div>` : ""}</div>
           <form class="ai-in" data-q><input class="field" name="q" placeholder="Ask Blockvile AI…" autocomplete="off" value="${esc(keep)}"><button class="btn" ${busy ? "disabled" : ""}>Send</button></form>
-          ${chat.length ? `<button class="link-btn" data-clear style="margin:6px auto 0;display:block">Clear chat</button>` : ""}</div>`;
+          <div style="display:flex;gap:10px;justify-content:center;align-items:center;margin-top:6px"><label class="muted" style="font-size:12px">Model <select class="field" data-model style="padding:4px 8px;width:auto">${Object.entries(window.BV.ai.models).map(([k, v]) => `<option value="${k}" ${window.BV.ai.model() === k ? "selected" : ""}>${esc(v.name)} — ${esc(v.note)}</option>`).join("")}</select></label>
+            ${chat.length ? `<button class="link-btn" data-clear>Clear chat</button>` : ""}</div></div>`;
         const lg = body.querySelector(".ai-log"); lg.scrollTop = lg.scrollHeight;
       };
       async function ask(text) {
@@ -201,6 +219,7 @@
         const g = e.target.closest("[data-go]"); if (g) { const a = g.dataset.go; pendingAction = null; if (a === "takeover") os.startTakeover(); return draw(); }
         if (e.target.closest("[data-clear]")) { chat = []; save(); draw(); }
       });
+      body.addEventListener("change", e => { const m = e.target.closest("[data-model]"); if (m) { try { window.BV.ai.setModel(m.value); os.toast("✨ AI model: " + window.BV.ai.models[m.value].name); } catch { } } });
       body.addEventListener("submit", e => { const f = e.target.closest("[data-q]"); if (!f) return; e.preventDefault(); const v = f.q.value; f.q.value = ""; ask(v); });
       draw();
     }
