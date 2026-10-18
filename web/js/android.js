@@ -22,6 +22,7 @@
       call("openPlayStore", pkg); return true;
     },
     search: q => available && call("openPlaySearch", q),
+    inApp: u => available && call("openInApp", String(u)),   // a website inside Blockvile's own in-app browser
     uninstall: pkg => available && call("uninstall", pkg),
     info: pkg => available && call("appInfo", pkg),
     icon(pkg) { if (!available) return ""; if (!iconCache.has(pkg)) iconCache.set(pkg, call("getIcon", pkg) || ""); return iconCache.get(pkg); },
@@ -34,6 +35,7 @@
     // Updates (web content over the air; native changes go through Google Play)
     ota: () => { if (!available) return null; try { return JSON.parse(call("otaStatus") || "{}"); } catch { return {}; } },
     otaApply: () => available && call("otaApply"),
+    otaSwitch: v => available && call("otaSwitch", v),
     otaBooted: () => available && call("otaBooted"),
     playUpdate: () => available && call("playUpdate"),
     // Digital SIM / sign-in helpers
