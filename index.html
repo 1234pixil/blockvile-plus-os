@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0f1115">
   <title>Blockvile Plus OS</title>
+  <script>/* Stay on the version the person chose (Terminal: switch version). "?bvlatest" goes back to the newest. */
+  try{var L=localStorage;if(!/^https?:/.test(location.protocol)){}else if(/[?&]bvlatest/.test(location.search))L.removeItem("bv:pin");else{var P=JSON.parse(L.getItem("bv:pin")||"null");if(typeof P==="string"&&/^[0-9]+(\.[0-9]+)*$/.test(P)&&!/\/versions\//.test(location.pathname))location.replace("versions/"+P+"/index.html")}}catch(e){}</script>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -239,6 +241,7 @@
   <script src="js/android.js"></script>
   <script src="js/apps.js"></script>
   <script src="js/apps-media.js"></script>
+  <script src="js/apps-web.js"></script>
   <script src="js/apps-store.js"></script>
   <script src="js/apps-video.js"></script>
   <script src="js/apps-help.js"></script>
