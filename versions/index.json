@@ -1,0 +1,15 @@
+{
+ "versions": [
+  {
+   "version": "3.19",
+   "build": "203b71257fe0",
+   "native": 1,
+   "released": "2026-10-18",
+   "notes": [
+    "Blockvile Updater: Check/Update now buttons, and install an update from a zip you choose (works offline)",
+    "Separate updater app (updater.html) with its own icon",
+    "OS Update app Versions tab; Terminal: switch version"
+   ]
+  }
+ ]
+}
