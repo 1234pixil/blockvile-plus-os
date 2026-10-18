@@ -35,7 +35,7 @@
     <li>Settings (theme, wallpaper, PIN, device mode, dock and home-screen layout)</li>
     <li>Files, notes, reminders, calendar events, alarms and contacts you type into Blockvile</li>
     <li>Photos you take or add, drawings, music you add and voice recordings</li>
-    <li>Your Cloud Music library and saved videos, your watch history, and your YouTube API key if you add one</li>
+    <li>Your Cloud Music library, your YouTube likes, subscriptions, watch-later list and watch history</li>
   </ul>
   <p>You can erase all of it at any time in <b>Settings → Erase everything &amp; reset</b>, or by uninstalling the app.</p>
 
@@ -72,10 +72,10 @@
   <ul>
     <li><b>Open-Meteo</b> (weather): the city you search for, or your approximate coordinates if you tap “My location”. <a href="https://open-meteo.com/en/terms" rel="noopener">open-meteo.com</a></li>
     <li><b>OpenStreetMap</b> (maps and place search): place names you search for and the map area you view. <a href="https://osmfoundation.org/wiki/Privacy_Policy" rel="noopener">osmfoundation.org</a></li>
-    <li><b>YouTube</b> (Videos): YouTube's privacy-enhanced embedded player loads when you watch a video, and video titles are looked up through noembed.com. If you add your own YouTube API key, searches are sent to the YouTube Data API. <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a></li>
+    <li><b>YouTube</b>: YouTube's privacy-enhanced embedded player loads when you watch a video, and video thumbnails load from i.ytimg.com. Pasted links are looked up by title through noembed.com. Trending and search requests are sent, when you are signed in, to the publisher's Supabase server function, which asks Google's YouTube service on your behalf (the publisher's YouTube key stays on that server). Your searches go to Google's YouTube service under Google's privacy policy.</li>
     <li><b>SoundCloud</b> (Cloud Music): SoundCloud's player loads when you play a link. <a href="https://soundcloud.com/pages/privacy" rel="noopener">soundcloud.com</a></li>
     <li><b>Google Play</b>: when you tap Install or search for Android apps, Blockvile opens Google Play, which handles the install. <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy Policy</a></li>
-    <li><b>YouTube</b> (Videos app): YouTube's player loads when you play a video. If you add your own YouTube API key for in-app search, your searches go to Google's YouTube service. <a href="https://www.youtube.com/t/privacy" rel="noopener">YouTube privacy</a></li>
+    
     <li><b>Feedback</b>: only when you press Send in the Feedback app. Your message, rating, optional email and (if you tick the box) basic device details go to the publisher by e-mail through the FormSubmit service (<a href="https://formsubmit.co/" rel="noopener">formsubmit.co</a>) and, if the publisher uses Supabase, are saved in its database.</li>
     <li><b>The publisher's website</b> (software updates): Blockvile asks it whether a newer version exists and downloads the new files. It receives the normal technical information any web request includes, such as your IP address.</li>
     <li><b>Supabase</b> (sign-in, devices, Digital SIM): only if you sign in. <a href="https://supabase.com/privacy" rel="noopener">supabase.com/privacy</a></li>
@@ -96,5 +96,6 @@
   <h2>Contact</h2>
   <p>Questions about privacy: ethanabraham09092014@gmail.com</p>
 </main>
+<h2>Websites opened inside Blockvile</h2><p>Links you tap open inside Blockvile (a Blockvile window, or the Android app's in-app browser). Those pages are run by their own owners, who may collect data under their own policies. The in-app browser cannot read Blockvile's own data.</p>
 </body>
 </html>
