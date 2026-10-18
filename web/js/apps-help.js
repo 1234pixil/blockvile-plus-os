@@ -61,13 +61,20 @@
       <h4>✨ Blockvile AI</h4><ul><li>Say “open Notes”, “dark mode on” or “switch to laptop mode” — works without internet.</li>
         <li>Sign in to ask general questions.</li></ul>
       ${btnOpen("accounts", "👤 Open Accounts")}${btnOpen("ai", "✨ Open Blockvile AI")}` },
+    { id: "inapp", icon: "🪟", title: "Sites and apps stay inside Blockvile", tags: "browser inside in app website link open tab google play embedded youtube gmail blocked outside", body: () => `
+      <p>Links open <b>inside Blockvile</b> — in a Blockvile window on the web, and in Blockvile's own in-app browser on Android — instead of jumping to your phone's browser.</p>
+      <ul><li><b>Some websites refuse</b> to be shown inside other pages on the web (Google Play, Gmail, YouTube, Facebook…). That's the website's own rule. Blockvile tells you and offers <b>Open outside Blockvile</b>. In the Android app these sites open fine in the in-app browser.</li>
+        <li><b>Installing Android apps</b> is always finished by the real Google Play app — only Google Play can install apps. Everything before the Install button happens inside Blockvile.</li>
+        <li><b>Signing in with Google</b> has to leave Blockvile for a moment — Google doesn't allow its login inside other apps.</li>
+        <li>Apps already installed on your phone (like Gmail) are separate Android apps, so they open in their own window.</li></ul>` },
     { id: "update", icon: "⬆️", title: "Updating Blockvile", tags: "software update app update upgrade new version software update install latest notification", body: () => `
       <p>You don't need to download Blockvile again. Updates install in place and keep your apps, files and settings.</p>
       <ul><li>You get an <b>Update available</b> notification when a new version is ready.</li>
-        <li>Open the <b>Software Update</b> app (it's in your app list, and Settings has a shortcut) and tap <b>Update now</b>. Tap <b>Check for updates</b> any time — it's also right in <b>Settings → Software update</b>, or type <code>update</code> in the Terminal (then <code>update now</code> to install).</li>
+        <li>Open the <b>OS Update</b> app (it's in your app list, and Settings has a shortcut) and tap <b>Update now</b>. Tap <b>Check for updates</b> any time — it's also right in <b>Settings → Software update</b>, or type <code>update</code> in the Terminal (then <code>update now</code> to install).</li>
         <li>Updates are <b>manual</b>: Blockvile shows an <b>Update available</b> card on your home screen, but nothing installs until you tap <b>Update now</b>.</li>
         <li>In the Android app, some updates change the app itself. Then the button says <b>Update on Google Play</b>.</li></ul>
-      ${btnOpen("updates", "⬆️ Open Software Update")}` },
+      <li>Don't like a new version? Open the <b>Versions</b> tab in <b>OS Update</b> and tap <b>Switch back</b> on an older one. You can move forward again the same way. Your apps, files and settings stay. In the Terminal type <code>switch version</code> to see them and <code>switch version 3.15 now</code> to switch (<code>switch version latest now</code> returns to the newest).</li>
+      ${btnOpen("updates", "⬆️ Open OS Update")}` },
     { id: "install", icon: "📲", title: "Install Blockvile on your device", tags: "install download app home screen desktop pwa add icon offline iphone android windows mac chromebook", body: os => `
       <p>Install Blockvile and it gets its own icon, opens full screen and works offline — like any other app.</p>
       <p><b>On this device:</b> ${esc(os.installLabel())}</p>
@@ -83,15 +90,17 @@
         <li><b>Accent colour:</b> seven colours in Settings.</li>
         <li><b>Night light</b> warms the screen in the evening; <b>brightness</b> is in the Control Centre.</li></ul>${btnOpen("settings", "⚙ Open Settings")}` },
     { id: "apps", icon: "🛍", title: "Getting and removing apps", tags: "store install uninstall get apps android google play web app pin dock", body: () => `
-      <ul><li>Open the <b>Blockvile Store</b> to install extra apps and games with one tap.</li>
+      <ul><li>Open the <b>Play Store</b> to install extra apps and games with one tap.</li>
         <li><b>Android tab:</b> in the Android app, <b>Install</b> opens the app in Google Play; when you come back, Blockvile adds it to your home screen. In a browser, it opens the app's Play page.</li>
         <li><b>Library tab:</b> add any website as an app.</li>
-        <li><b>Long-press</b> (or right-click) an icon to pin it to the dock or uninstall it.</li></ul>${btnOpen("store", "🛍 Open Blockvile Store")}` },
-    { id: "videos", icon: "📺", title: "Watching YouTube", tags: "youtube video videos watch shorts playlist search api key not playing", body: () => `
-      <ol><li>Open <b>Videos</b> and paste a YouTube link — videos, Shorts, live streams and playlists all work.</li>
-        <li>Tap <b>♡ Save</b> to keep a video; your recent videos are in <b>History</b>.</li></ol>
-      <h4>Searching</h4><p>Search opens YouTube in a new tab; copy a video's link and paste it into Videos. For search inside Blockvile, add a free YouTube Data API key in the Search tab.</p>
-      <h4>Video won't play?</h4><ul><li>Some owners don't allow their videos on other sites — tap <b>↗ YouTube</b>.</li><li>Opened Blockvile from a file? Videos work best when Blockvile is on a website.</li></ul>${btnOpen("videos", "📺 Open Videos")}` },
+        <li><b>Long-press</b> (or right-click) an icon to pin it to the dock or uninstall it.</li></ul>${btnOpen("store", "🛍 Open Play Store")}` },
+    { id: "videos", icon: "📺", title: "Watching YouTube", tags: "youtube tube video videos watch shorts playlist search trending sign in not playing", body: () => `
+      <p>The <b>YouTube</b> app is a YouTube-style page. Pick a video to watch it in YouTube's own player.</p>
+      <ol><li><b>Browse and search:</b> trending videos and search results are real YouTube results. This needs a Blockvile account — <b>sign in</b> (Settings → Account, or type <code>signin</code> in the Terminal).</li>
+        <li><b>Paste a link:</b> any YouTube link (videos, Shorts, live) in the search box plays straight away, no sign-in needed.</li>
+        <li><b>Like, Subscribe, Watch later and History</b> are saved on this device. YouTube's own comments aren't shown, and comments you write stay on this device.</li></ol>
+      <h4>Video won't play?</h4><ul><li>Some owners don't allow their videos on other sites. Use <b>Open outside Blockvile</b> from the video's page on YouTube.</li><li>Opened Blockvile from a file? YouTube works best when Blockvile is on a website.</li></ul>
+      <p class="muted">There's a fair daily limit on searches, so everyone can use it for free.</p>${btnOpen("videos", "▶️ Open YouTube")}` },
     { id: "music", icon: "🎧", title: "Music and Cloud Music", tags: "music songs mp3 soundcloud cloud stream playlist audio", body: () => `
       <ul><li><b>Music</b> plays songs from your device: tap <b>Add music files</b>. They stay saved in Blockvile.</li>
         <li><b>Cloud Music</b> streams SoundCloud: paste a track, playlist or artist link, then save it to your library.</li></ul>${btnOpen("cloudmusic", "🎧 Open Cloud Music")}` },
@@ -112,7 +121,7 @@
       <div class="list">${os.shortcuts.map(([k, d]) => `<div><span>${esc(d)}</span><kbd>${esc(k)}</kbd></div>`).join("")}</div>` },
     { id: "privacy", icon: "🛡", title: "Privacy and your data", tags: "privacy data saved storage delete erase reset tracking ads account", body: () => `
       <ul><li>No account, no ads, no tracking. Your files, notes, photos and settings stay on <b>this device</b>.</li>
-        <li>Weather, Maps, Videos, Cloud Music and the Browser connect to those services when you use them.</li>
+        <li>Weather, Maps, YouTube, Cloud Music and the Browser connect to those services when you use them.</li>
         <li>Feedback is only sent when you press <b>Send</b>, and device details only if you tick the box.</li>
         <li>Erase everything in Settings → <b>Erase everything &amp; reset</b>.</li></ul>
       <p><a href="privacy.html" target="_blank" rel="noopener">Read the full privacy policy</a></p>` },
@@ -278,7 +287,7 @@
           <label>How are you finding Blockvile?</label>
           <div class="fb-stars" role="radiogroup" aria-label="Rating">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-star="${n}" class="${n <= rating ? "on" : ""}" aria-label="${n} star${n > 1 ? "s" : ""}">⭐</button>`).join("")}</div>
           <label for="fb-msg">${{ bug: "What went wrong? What did you expect to happen?", idea: "What would make Blockvile better?", praise: "What do you like?", question: "What's your question?" }[type]}</label>
-          <textarea id="fb-msg" class="field" data-msg maxlength="5000" placeholder="${{ bug: "e.g. When I open Videos in tablet mode, the player…", idea: "e.g. It would be great if…", praise: "e.g. I love the laptop mode because…", question: "Ask anything…" }[type]}">${esc(draft.message)}</textarea>
+          <textarea id="fb-msg" class="field" data-msg maxlength="5000" placeholder="${{ bug: "e.g. When I open YouTube in tablet mode, the player…", idea: "e.g. It would be great if…", praise: "e.g. I love the laptop mode because…", question: "Ask anything…" }[type]}">${esc(draft.message)}</textarea>
           <label for="fb-contact">Email for a reply (optional)</label>
           <input id="fb-contact" class="field" data-contact type="email" placeholder="you@example.com" value="${esc(draft.contact)}" autocomplete="email">
           <label class="fb-check"><input type="checkbox" data-dev ${includeDev ? "checked" : ""}><span>Include device details — helps fix problems. <button type="button" class="link-btn" data-showdev>See what's included</button>
