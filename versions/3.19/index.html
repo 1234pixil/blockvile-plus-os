@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en" data-theme="light" data-mode="phone">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1115">
+  <title>Blockvile Plus OS</title>
+  <script>/* Stay on the version the person chose (Terminal: switch version). "?bvlatest" goes back to the newest. */
+  try{var L=localStorage;if(!/^https?:/.test(location.protocol)){}else if(/[?&]bvlatest/.test(location.search))L.removeItem("bv:pin");else{var P=JSON.parse(L.getItem("bv:pin")||"null");if(typeof P==="string"&&/^[0-9]+(\.[0-9]+)*$/.test(P)&&!/\/versions\//.test(location.pathname))location.replace("versions/"+P+"/index.html")}}catch(e){}</script>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Blockvile+">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===== Shown after Exit: the device is yours again ===== -->
+  <div id="host">
+    <div class="host-card">
+      <img src="icons/logo.svg" alt="" class="host-logo">
+      <h1>You've left Blockvile</h1>
+      <p data-host-msg>Your browser and device are all yours again.</p>
+      <div class="host-actions">
+        <button class="host-btn" data-action="toggle-exit">▶ Back to Blockvile</button>
+        <button class="host-btn ghost" data-action="host-close">✕ Close this tab</button>
+        <button class="host-btn ghost" data-action="host-back">← Previous page</button>
+      </div>
+      <p class="host-hint" data-host-hint></p>
+    </div>
+  </div>
+
+  <!-- ===== Floating shortcut bar ===== -->
+  <div id="quickbar" aria-label="Quick controls">
+    <button class="qb" data-action="toggle-dark" title="Dark mode (Ctrl+Shift+D)" aria-label="Toggle dark mode">
+      <svg viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+    <button class="qb" data-action="cycle-mode" title="Switch mode (Ctrl+Shift+M)" aria-label="Switch device mode">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+    </button>
+    <button class="qb qb-exit" data-action="toggle-exit" title="Exit OS (Ctrl+Shift+E)" aria-label="Exit or enter the OS">
+      <svg viewBox="0 0 24 24"><path d="M12 3v9"/><path d="M6.3 6.3a8 8 0 1 0 11.4 0"/></svg>
+    </button>
+  </div>
+
+  <div id="stage">
+    <div id="device">
+      <div id="screen">
+
+        <!-- Boot -->
+        <div id="boot">
+          <img src="icons/logo.svg" alt="">
+          <div class="boot-name">Blockvile <b>Plus</b></div>
+          <div class="boot-bar"><i></i></div>
+        </div>
+
+        <!-- Lock screen -->
+        <div id="lock">
+          <div class="lock-top">
+            <div class="lock-time" data-clock="time">00:00</div>
+            <div class="lock-date" data-clock="date">Thursday</div>
+          </div>
+          <div class="lock-widgets">
+            <div class="glass mini-widget"><span data-wx-ic>🌤</span><b data-wx-temp>--°</b><small data-wx-loc>Weather</small></div>
+            <div class="glass mini-widget"><span>🔋</span><b data-battery>100%</b><small>Battery</small></div>
+          </div>
+          <div id="lock-notifs"></div>
+          <div id="pinpad" hidden>
+            <p class="pin-msg">Enter PIN</p>
+            <div class="pin-dots"></div>
+            <div class="pin-keys">
+              <button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button>
+              <button>7</button><button>8</button><button>9</button><button data-pin="cancel">✕</button><button>0</button><button data-pin="del">⌫</button>
+            </div>
+          </div>
+          <button class="lock-unlock" data-action="unlock">Swipe up or tap to unlock<span></span></button>
+          <div class="lock-corners"><button data-action="lock-torch" aria-label="Torch">🔦</button><button data-action="lock-camera" aria-label="Camera">📷</button></div>
+        </div>
+
+        <!-- Mac-style menu bar (laptop) -->
+        <div id="menubar" class="glass">
+          <button class="mb-logo" data-menu="system"><img src="icons/logo.svg" alt="Menu"></button>
+          <b id="mb-app">Finder</b>
+          <button data-menu="app">File</button><button data-menu="view">View</button><button data-menu="go">Go</button><button data-menu="help">Help</button>
+          <span class="mb-right">
+            <span data-dnd-ind class="ind">🌙</span>
+            <span data-air-ind class="ind">✈</span>
+            <button data-action="spotlight" title="Search (Ctrl+K)">⌕</button>
+            <button class="mb-exit" data-action="toggle-exit" title="Exit Blockvile (Ctrl+Shift+E)">⏻ Exit</button>
+            <button data-action="open-cc" title="Control centre">☰</button>
+            <span data-battery>100%</span>
+            <b data-clock="mbar"></b>
+          </span>
+        </div>
+
+        <!-- Status bar (phone/tablet) -->
+        <div id="statusbar">
+          <div class="sb-left" data-action="open-notif"><span data-clock="short">00:00</span><span class="sb-badges"></span></div>
+          <div class="sb-center"><span class="sb-mode" data-mode-label>Phone</span><button class="sb-exit" data-action="toggle-exit" title="Exit Blockvile" aria-label="Exit Blockvile">⏻ Exit</button></div>
+          <div class="sb-right" data-action="open-cc">
+            <span data-dnd-ind class="ind">🌙</span><span data-air-ind class="ind">✈</span>
+            <svg viewBox="0 0 24 24" data-sig><path d="M2 20h3v-4H2zm5 0h3v-8H7zm5 0h3V8h-3zm5 0h3V4h-3z" fill="currentColor" stroke="none"/></svg>
+            <svg viewBox="0 0 24 24" data-wifi><path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+            <span class="sb-batt"><i data-battery-bar></i></span>
+          </div>
+        </div>
+
+        <!-- Home -->
+        <div id="home">
+          <div class="home-widgets">
+            <div class="glass widget clock-widget" data-open="clock">
+              <div class="w-time" data-clock="time">00:00</div>
+              <div class="w-date" data-clock="date"></div>
+            </div>
+            <div class="glass widget weather-widget" data-open="weather">
+              <div class="w-temp"><span data-wx-ic>🌤</span> <span data-wx-temp>--°</span></div>
+              <div class="w-desc" data-wx-desc>Loading…</div>
+              <div class="w-loc" data-wx-loc></div>
+            </div>
+            <button class="glass widget search-widget" data-action="spotlight">⌕ Search apps, files, settings…</button>
+            <button class="glass widget tk-widget upd-widget" data-action="open-updates"><span class="tk-ic">⬆️</span><span><b>Update available</b><small>Tap to see what's new — it only installs when you tap Update now</small></span></button>
+            <button class="glass widget tk-widget tk-start" data-action="takeover"><span class="tk-ic">⛶</span><span><b>Temporarily let Blockvile take over this device</b><small>Full screen until you end it · always temporary, never permanent</small></span></button>
+            <button class="glass widget tk-widget tk-on" data-action="end-takeover"><span class="tk-ic">⛶</span><span><b>Temporary takeover is on — tap to end</b><small>Or press ⏻ Exit, or type <code>application exit</code> in Terminal</small></span></button>
+          </div>
+          <div id="appgrid" class="appgrid"></div>
+        </div>
+        <div id="dock" class="glass"></div>
+
+        <!-- Laptop taskbar / dock -->
+        <div id="taskbar" class="glass">
+          <button class="tb-start" data-action="toggle-launcher" aria-label="Start"><img src="icons/logo.svg" alt=""></button>
+          <button class="tb-ic" data-action="spotlight" title="Search (Ctrl+K)">⌕</button>
+          <div id="tb-apps"></div>
+          <div class="tb-tray">
+            <button class="tb-ic" data-action="toggle-dark" title="Dark mode">◐</button>
+            <button class="tb-ic" data-action="open-notif" title="Notifications">🔔<i class="tb-count"></i></button>
+            <button class="tb-ic" data-action="open-cc" title="Control centre">⚙︎</button>
+            <span class="tb-clock"><b data-clock="short"></b><small data-clock="dshort"></small></span>
+          </div>
+        </div>
+
+        <!-- Laptop launcher -->
+        <div id="launcher" class="glass">
+          <input id="launcher-search" placeholder="Search apps…" autocomplete="off">
+          <div id="launcher-grid" class="appgrid"></div>
+          <div class="launcher-foot">
+            <span>👤 <b data-username>User</b></span>
+            <button data-action="power" title="Power">⏻</button>
+          </div>
+        </div>
+
+        <div id="windows"></div>
+
+        <!-- Recents / app switcher -->
+        <div id="recents"><div id="recents-list"></div><button class="recents-clear" data-action="close-all">Clear all</button></div>
+
+        <!-- Notification shade -->
+        <div id="notif" class="shade">
+          <div class="shade-head"><b data-clock="time"></b><span data-clock="date"></span></div>
+          <div id="notif-list"></div>
+          <button class="shade-clear" data-action="clear-notifs">Clear all</button>
+        </div>
+
+        <!-- Control centre -->
+        <div id="cc" class="shade">
+          <div class="cc-grid">
+            <button class="cc-big on" data-toggle="wifi"><span>📶</span><b>Wi-Fi</b><small>Blockvile-5G</small></button>
+            <button class="cc-big on" data-toggle="data"><span>📡</span><b>Mobile data</b><small>On</small></button>
+            <div class="cc-slider"><span>☀</span><input type="range" min="20" max="100" value="100" id="brightness" aria-label="Brightness"></div>
+            <div class="cc-slider"><span>🔊</span><input type="range" min="0" max="100" value="60" id="volume" aria-label="Volume"></div>
+            <button class="cc-tile" data-toggle="bluetooth"><span>ᛒ</span><small>Bluetooth</small></button>
+            <button class="cc-tile" data-action="toggle-dark"><span>◐</span><small>Dark mode</small></button>
+            <button class="cc-tile" data-action="toggle-flag" data-flag="airplane"><span>✈</span><small>Airplane</small></button>
+            <button class="cc-tile" data-action="toggle-flag" data-flag="torch"><span>🔦</span><small>Torch</small></button>
+            <button class="cc-tile" data-action="toggle-flag" data-flag="dnd"><span>🌙</span><small>Do not disturb</small></button>
+            <button class="cc-tile" data-action="toggle-flag" data-flag="nightLight"><span>🌅</span><small>Night light</small></button>
+            <button class="cc-tile" data-action="toggle-flag" data-flag="saver"><span>🔋</span><small>Battery saver</small></button>
+            <button class="cc-tile" data-action="toggle-flag" data-flag="landscape"><span>⟳</span><small>Rotate</small></button>
+            <button class="cc-tile" data-action="set-mode" data-mode="phone"><span>📱</span><small>Phone</small></button>
+            <button class="cc-tile" data-action="set-mode" data-mode="tablet"><span>📲</span><small>Tablet</small></button>
+            <button class="cc-tile" data-action="set-mode" data-mode="laptop"><span>💻</span><small>Laptop</small></button>
+            <button class="cc-tile" data-action="power"><span>⏻</span><small>Power</small></button>
+            <button class="cc-wide cc-takeover" data-action="takeover-toggle"><span class="tk-off-l">⛶ Temporarily take over this device</span><span class="tk-on-l">⛶ End temporary takeover</span></button>
+            <button class="cc-wide cc-danger" data-action="toggle-exit">⏏ Exit Blockvile Plus OS</button>
+          </div>
+        </div>
+
+        <div id="scrim"></div>
+
+        <!-- Spotlight search -->
+        <div id="spotlight" class="overlay">
+          <div class="sp-box glass">
+            <input id="sp-input" placeholder="Search apps, files, settings, or type a sum…" autocomplete="off" aria-label="Search">
+            <div id="sp-results"></div>
+          </div>
+        </div>
+
+        <!-- Power menu -->
+        <div id="powermenu" class="overlay">
+          <div class="pm-box">
+            <button data-power="lock"><span>🔒</span>Lock</button>
+            <button data-power="sleep"><span>🌙</span>Sleep</button>
+            <button data-power="restart"><span>↻</span>Restart</button>
+            <button data-power="shutdown"><span>⏻</span>Shut down</button>
+            <button data-power="exit"><span>⏏</span>Exit OS</button>
+          </div>
+        </div>
+
+        <!-- Install on this device -->
+        <div id="installsheet" class="overlay"><div class="help-box glass" id="install-box"></div></div>
+
+        <!-- Shortcut help -->
+        <div id="help" class="overlay"><div class="help-box glass" id="help-box"></div></div>
+
+        <!-- Context menu -->
+        <div id="ctxmenu" class="glass"></div>
+
+        <!-- Gesture bar -->
+        <div id="navbar">
+          <button data-action="recents" aria-label="Recents">▢</button>
+          <button class="nav-home" data-action="home" aria-label="Home"></button>
+          <button data-action="back" aria-label="Back">◁</button>
+        </div>
+
+        <div id="osd"><span id="osd-ic"></span><i><b id="osd-bar"></b></i></div>
+        <div id="toast"></div>
+        <div id="nightlight"></div>
+        <div id="dim"></div>
+        <div id="sleep" data-action="wake"><p>Tap to wake</p></div>
+        <div id="off"><button data-action="poweron" aria-label="Power on">⏻</button><p>Blockvile Plus is off · tap to start</p></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/build.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/lib.js"></script>
+  <script src="js/android.js"></script>
+  <script src="js/apps.js"></script>
+  <script src="js/apps-media.js"></script>
+  <script src="js/apps-web.js"></script>
+  <script src="js/apps-store.js"></script>
+  <script src="js/apps-video.js"></script>
+  <script src="js/apps-help.js"></script>
+  <script src="js/accounts.js"></script>
+  <script src="js/updates.js"></script>
+  <script src="js/apps-sim-ai.js"></script>
+  <script src="js/os.js"></script>
+<script id="bv-back-latest">(function(){var b=document.createElement("a");b.href="../../?bvlatest=1";b.textContent="Version 3.19 · back to latest";b.style.cssText="position:fixed;z-index:2147483647;left:50%;bottom:6px;transform:translateX(-50%);background:#0f172a;color:#fff;font:600 12px system-ui,sans-serif;padding:6px 12px;border-radius:99px;text-decoration:none;opacity:.85";addEventListener("load",function(){document.body.appendChild(b)})})();</script></body>
+</html>
