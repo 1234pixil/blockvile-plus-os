@@ -34,6 +34,7 @@ supabase login
 supabase link --project-ref YOUR_PROJECT_REF
 supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 supabase functions deploy ai
+# Re-deploy this after updating Blockvile: it adds the Fast / Balanced / Smartest model choice
 ```
 Only signed-in users can call it. Using it costs whatever your AI key costs — you can cap that in your AI provider's dashboard.
 
@@ -49,3 +50,18 @@ The Feedback app sends to the form service in `web/js/config.js` (`feedback.endp
 
 ## Privacy and Google Play
 Accounts mean you now store personal data (email, name, device names, SIM number, messages) on your Supabase project. `web/privacy.html` and `store-listing/listing.md` were updated to say so — check them, then fill the Play **Data safety** form to match.
+
+
+## YouTube (search and trending in the YouTube app)
+
+The YouTube app uses your own YouTube Data API key, kept **only on the server** — it is never in the app, the website or the Android app.
+
+1. **Make the key safe at Google first** (Google Cloud Console → APIs & Services → Credentials → your key): under *API restrictions* choose **Restrict key → YouTube Data API v3**. If you ever pasted the key into a chat or document, create a fresh key and delete the old one.
+2. **Re-run `supabase/schema.sql`** in the Supabase SQL Editor (it adds the small quota table).
+3. **Set the secret** (replace with your key):
+   `supabase secrets set YOUTUBE_API_KEY=your-key-here`
+4. **Deploy:** `supabase functions deploy youtube`
+5. Optional limits (units per day; a search costs about 101, Google gives 10,000 free a day):
+   `supabase secrets set YT_USER_UNITS=3000 YT_ALL_UNITS=9000`
+
+Nobody can use YouTube search without signing in. Pasting a YouTube link to watch it needs no sign-in and no key.
