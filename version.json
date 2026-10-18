@@ -1,17 +1,18 @@
 {
- "version": "3.10",
- "build": "50e35483d131",
+ "version": "3.19",
+ "build": "203b71257fe0",
  "native": 1,
- "released": "2026-10-17",
+ "released": "2026-10-18",
  "notes": [
-  "Updates are manual: an Update available card appears and nothing installs until you tap Update now",
-  "Feedback now reaches the developer's inbox directly (no email app needed)"
+  "Blockvile Updater: Check/Update now buttons, and install an update from a zip you choose (works offline)",
+  "Separate updater app (updater.html) with its own icon",
+  "OS Update app Versions tab; Terminal: switch version"
  ],
  "files": [
   {
    "path": "css/style.css",
-   "sha256": "1ec2228c233da4dbcaf73e218ba72d7404137df9dac21d3659e0482d3da8ff0b",
-   "size": 57099
+   "sha256": "4dbd6ae5fe5bcd5ab2a6bad011768ca485cba46e42a783cae139a1ece304efe9",
+   "size": 57863
   },
   {
    "path": "icons/apple-touch-icon.png",
@@ -40,23 +41,23 @@
   },
   {
    "path": "index.html",
-   "sha256": "a04bdbc0c6474f913a11382f377e2b07f56422f58bbd0afbffcebb8bbc060a34",
-   "size": 14086
+   "sha256": "ece68a0d957a820b2df097350be108ceed85a8f5c35ce6d8dd839efbac501a0f",
+   "size": 14592
   },
   {
    "path": "js/accounts.js",
-   "sha256": "35363d0cf5fc27605efc71bc7e95dd1b2ed8eea5e6ad338de044dea58827fcce",
-   "size": 26766
+   "sha256": "07f19da413625c87d284fe472684ea75c391e157c74637609ffa1acff86ed288",
+   "size": 26770
   },
   {
    "path": "js/android.js",
-   "sha256": "077c0e1f946f8729dc8e3c7871ddcb6ffe622a64b12e4d15a9e38b31cf3309bf",
-   "size": 12947
+   "sha256": "ca1f4be676edd1849584dc6da59aaceee4bc1bc072c5df41e170f732c30d35b9",
+   "size": 13114
   },
   {
    "path": "js/apps-help.js",
-   "sha256": "c81912ae23e62f1499a11c41248012e98efe1feae7292c361497f31951b11ced",
-   "size": 33672
+   "sha256": "4247865acb4e8c7eb9482e95132bbbaf8d7671e4ca5faab63b30e8cde7ad517b",
+   "size": 35577
   },
   {
    "path": "js/apps-media.js",
@@ -65,32 +66,37 @@
   },
   {
    "path": "js/apps-sim-ai.js",
-   "sha256": "7ab87b6aeca9195ca2e241fa146a32adc1fd3a2959c92f7d3343f4c01d05441b",
-   "size": 20166
+   "sha256": "d68dc33acf54d87f29f820d43f5c862488ccf9357a732f1d1dfe17f05d3f7889",
+   "size": 21895
   },
   {
    "path": "js/apps-store.js",
-   "sha256": "8d99ab54efa1969b51bdd146093cb55febe26ec334f3810547db8dc5a93dfea3",
-   "size": 43098
+   "sha256": "296ac28d6dd795c4847cfe96631ae9cbf0ac9aa90d8a555c25b3d96c337889b6",
+   "size": 44667
   },
   {
    "path": "js/apps-video.js",
-   "sha256": "906b257686ce242d9e06c2b3cc5642426fecc150556ae1050c06b43a51022826",
-   "size": 12550
+   "sha256": "d826b7257298b287aa4ea9cf19fabd816692d1164bf9e132dcce9063c7bd5aa6",
+   "size": 5767
+  },
+  {
+   "path": "js/apps-web.js",
+   "sha256": "8028ce1d3b8dfa69cff94b5f25e4929e547e72ee57829490016462b072303638",
+   "size": 4548
   },
   {
    "path": "js/apps.js",
-   "sha256": "7eca0ea61512222aaf903442c3deb0c3d819035737e7b4f8f0873ef8ba67e197",
-   "size": 55937
+   "sha256": "bac1d8a06bcb4ce7357d9afd807c58e8e1b1eaba841832d45b85990475cfc9e3",
+   "size": 65355
   },
   {
    "path": "js/build.js",
-   "sha256": "1ed4af5e8362cb5120175a83d4cc2c1e603bb0559b0fd409e43687d98041fe09",
+   "sha256": "49e8bd4a53f8466d0cc07679cc4288004acd583b0561ff924e66e44c77d10596",
    "size": 121
   },
   {
    "path": "js/config.js",
-   "sha256": "0a32773eb5fa80104758a96709e2c6575b7b6dc2e1e1c6bceb4e7ad2cdca7bc4",
+   "sha256": "ec54705e5b71e32d2ce303f83ada5f303a20dbdadf53f77248af293a3636e7c3",
    "size": 1862
   },
   {
@@ -105,23 +111,38 @@
   },
   {
    "path": "js/updates.js",
-   "sha256": "03f585f6f7a98796fe090259e0aa4b5cf6b4cc27b25b1e498c1c6735ef9762f7",
-   "size": 13312
+   "sha256": "b1ed06c61ba0704e8946ac5133d79ec695eea497c7993328145c80cfee29ebe1",
+   "size": 20395
   },
   {
    "path": "manifest.json",
-   "sha256": "f6ce9f9c27dd7b49b06fe9e9f9515cceacc8e239d8d74c25155d5751391fdb23",
-   "size": 1337
+   "sha256": "651a107bfbef82056bd82978876181f3832f618e95eeb16f0c5337a39aacc34c",
+   "size": 1333
   },
   {
    "path": "privacy.html",
-   "sha256": "b9d9bec1fbd147455d6e18143f4fde0fc02c67c014897fd7f786cb69201d4bc7",
-   "size": 9776
+   "sha256": "0e0e25224b346e7fb55597b647a396863b1415c2ea467d45404528ed60846c9a",
+   "size": 9950
   },
   {
    "path": "sw.js",
-   "sha256": "36746d20767a5e5373d0c299f7171487c87b8516514849733f37c91ffb0b771d",
-   "size": 2812
+   "sha256": "30eb1b3811d4cb2ad1d26ecd2a96b3183d6390aea49e29d202575885cfe57f25",
+   "size": 3151
+  },
+  {
+   "path": "tube.html",
+   "sha256": "9600278c4991f18246b022acb026cb10d357c39e3415ce7ded8f63d763bda9d6",
+   "size": 87098
+  },
+  {
+   "path": "updater.html",
+   "sha256": "7cdcd5bdb74364f18790e416c47accb03226692a0625b515663186a369742d1d",
+   "size": 13105
+  },
+  {
+   "path": "updater.webmanifest",
+   "sha256": "d974fd231d447d5b2e422cde3063bb57c1cce069c446a748421344c27d7d5d90",
+   "size": 392
   }
  ]
 }
