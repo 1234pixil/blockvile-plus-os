@@ -1,6 +1,7 @@
 // Blockvile AI — Supabase Edge Function. The AI key stays here on the server, never in the app.
 // Deploy:  supabase functions deploy ai
-// Secret:  supabase secrets set ANTHROPIC_API_KEY=sk-ant-...   (optional: ANTHROPIC_MODEL=claude-sonnet-5-5)
+// Secret:  supabase secrets set ANTHROPIC_API_KEY=sk-ant-...   (optional: ANTHROPIC_MODEL=claude-sonnet-5-5 changes the default)
+// The app lets people pick Fast / Balanced / Smartest. Only these models are allowed, so nobody can pick an expensive one by hand.
 // Only signed-in users can call it (Supabase checks the login token for you).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 
@@ -10,6 +11,12 @@ const cors = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { ...cors, "Content-Type": "application/json" } });
+
+const MODELS: Record<string, string> = {
+  fast: "claude-haiku-5-5",
+  balanced: Deno.env.get("ANTHROPIC_MODEL") ?? "claude-sonnet-5-5",
+  smart: "claude-opus-5-5",
+};
 
 const SYSTEM = `You are Blockvile AI, the built-in assistant of Blockvile Plus OS (a phone/tablet/laptop-style shell).
 Be brief, friendly and practical. You can't see the user's files. If the user wants the OS to do something, you may add ONE action line at the very end, exactly like:
@@ -29,7 +36,8 @@ Deno.serve(async (req) => {
   if (!key) return json({ error: "The AI key hasn't been set up on the server yet" }, 503);
 
   let messages: { role: string; content: string }[] = [];
-  try { messages = (await req.json()).messages ?? []; } catch { return json({ error: "Bad request" }, 400); }
+  let choice = "balanced";
+  try { const b = await req.json(); messages = b.messages ?? []; if (typeof b.model === "string" && MODELS[b.model]) choice = b.model; } catch { return json({ error: "Bad request" }, 400); }
   messages = messages.filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
     .slice(-20).map((m) => ({ role: m.role, content: m.content.slice(0, 4000) }));
   if (!messages.length || messages[messages.length - 1].role !== "user") return json({ error: "Nothing to answer" }, 400);
@@ -37,7 +45,7 @@ Deno.serve(async (req) => {
   const r = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({ model: Deno.env.get("ANTHROPIC_MODEL") ?? "claude-sonnet-5-5", max_tokens: 600, system: SYSTEM, messages }),
+    body: JSON.stringify({ model: MODELS[choice], max_tokens: 600, system: SYSTEM, messages }),
   });
   if (!r.ok) return json({ error: "The AI service is busy, try again" }, 502);
   const out = await r.json();
