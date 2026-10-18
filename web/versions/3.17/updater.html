@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Blockvile Updater</title><meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="updater.webmanifest"><link rel="icon" href="icons/logo.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--fg:#0f172a;--mut:#64748b;--ac:#0ea5e9}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#162033;--fg:#f1f5f9;--mut:#94a3b8}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px system-ui,sans-serif;padding:16px;max-width:560px;margin:auto}
+h1{font-size:22px;margin:8px 0 14px}.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px}
+.hero{text-align:center;background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(14,165,233,.2))}.hero .i{font-size:44px}.hero h2{margin:4px 0}
+.mut{color:var(--mut);font-size:13px}button,a.b{border:0;border-radius:12px;background:var(--ac);color:#fff;font:600 15px system-ui;padding:10px 16px;cursor:pointer;text-decoration:none;display:inline-block}
+button.g,a.g{background:transparent;color:var(--ac);border:1px solid var(--ac)}button:disabled{opacity:.5}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(128,128,128,.2)}.row:first-child{border-top:0}
+.t{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:rgba(128,128,128,.2);font-style:normal}.er{color:#ef4444}
+</style></head><body>
+<h1>⬆️ Blockvile Updater</h1>
+<div id="app" class="card hero"><div class="i">⏳</div><h2>Checking…</h2></div>
+<div id="vers"></div>
+<p class="mut">This is a separate app for updating Blockvile Plus OS. Updates never install by themselves, and your apps, files and settings stay as they are.</p>
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)},esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var VER=/^\d+(\.\d+){0,3}$/;
+function cmp(a,b){var x=a.split(".").map(Number),y=b.split(".").map(Number);for(var i=0;i<Math.max(x.length,y.length);i++){var d=(x[i]||0)-(y[i]||0);if(d)return d<0?-1:1}return 0}
+function pin(){try{var p=JSON.parse(localStorage.getItem("bv:pin")||"null");return typeof p==="string"&&VER.test(p)?p:""}catch(e){return""}}
+function setPin(v){try{if(v)localStorage.setItem("bv:pin",JSON.stringify(v));else localStorage.removeItem("bv:pin")}catch(e){}}
+var list=[],err="",busy="",done="";
+function j(u){return fetch(u+"?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()})}
+function refreshCache(){
+  if(!navigator.serviceWorker)return Promise.resolve();
+  return navigator.serviceWorker.getRegistration().then(function(reg){var sw=reg&&(reg.active||navigator.serviceWorker.controller);if(!sw)return;
+    return new Promise(function(res){var t=setTimeout(res,25000);navigator.serviceWorker.addEventListener("message",function f(e){if(e.data==="bv-updated"||e.data==="bv-update-failed"){clearTimeout(t);navigator.serviceWorker.removeEventListener("message",f);res()}});sw.postMessage("bv-update")})});
+}
+function load(){
+  err="";draw();
+  j("version.json").then(function(cur){
+    return j("versions/index.json").catch(function(){return{versions:[{version:cur.version,build:cur.build,released:cur.released,notes:cur.notes}]}})
+  }).then(function(r){
+    list=(r.versions||[]).filter(function(v){return v&&VER.test(v.version)}).sort(function(a,b){return cmp(a.version,b.version)});draw()
+  }).catch(function(){err=navigator.onLine===false?"You're offline":"Couldn't reach the update server";draw()});
+}
+function use(v){
+  var latest=list[list.length-1];busy=v;done="";draw();
+  var go=latest&&v===latest.version;setPin(go?"":v);
+  (go?refreshCache():Promise.resolve()).then(function(){busy="";done=go?"Blockvile is now on the latest version ("+v+").":"Blockvile will open on version "+v+".";draw()});
+}
+function draw(){
+  var p=pin(),latest=list[list.length-1],cur=p||(latest?latest.version:"");
+  var isLatest=latest&&cur===latest.version;
+  $("app").innerHTML='<div class="i">'+(err?"⚠️":busy?"⏳":isLatest?"✅":"⬆️")+'</div><h2>'+(err?"Couldn't check":busy?"Working…":!latest?"Checking…":isLatest?"Blockvile is up to date":"Update available")+'</h2>'
+   +'<p class="mut">'+(err?esc(err):done?esc(done):latest?"Blockvile opens on version "+esc(cur)+(isLatest?"":" · latest is "+esc(latest.version)):"")+'</p>'
+   +(latest&&!isLatest&&!busy?'<button id="up">Update to '+esc(latest.version)+'</button> ':"")
+   +'<a class="b g" href="'+(p?"versions/"+esc(p)+"/index.html":"index.html")+'">Open Blockvile</a> '+(err?'<button class="g" id="re">Try again</button>':"");
+  var u=$("up");if(u)u.onclick=function(){use(latest.version)};var re=$("re");if(re)re.onclick=load;
+  $("vers").innerHTML=list.length?'<div class="card"><b>Versions</b><div style="margin-top:6px">'+list.slice().reverse().map(function(v,i){
+    var tag=v.version===cur?"Chosen":i===0?"Latest":cmp(v.version,cur)<0?"Older":"Newer";
+    return '<div class="row"><span><b>'+esc(v.version)+'</b> <em class="t">'+tag+'</em><br><span class="mut">'+esc(v.released||"")+(v.notes&&v.notes[0]?" · "+esc(String(v.notes[0])):"")+'</span></span>'+(v.version===cur||busy?"":'<button class="g" data-v="'+esc(v.version)+'">'+(cmp(v.version,cur)<0?"Switch back":"Use")+'</button>')+'</div>'}).join("")+'</div></div>':"";
+  Array.prototype.forEach.call(document.querySelectorAll("[data-v]"),function(b){b.onclick=function(){use(b.getAttribute("data-v"))}});
+}
+load();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+})();
+</script></body></html>
