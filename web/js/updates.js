@@ -9,18 +9,25 @@
   const os = () => window.BlockvileOS;
   const HOURS = 6;
 
-  const st = { checking: false, remote: null, error: "", last: store.get("updLast", 0), applying: false, pct: 0, msg: "" };
+  const st = { versions: null, vLoading: false, vError: "", checking: false, remote: null, error: "", last: store.get("updLast", 0), applying: false, pct: 0, msg: "" };
   const emit = () => { document.documentElement.classList.toggle("has-update", updates.available() && !st.applying); window.dispatchEvent(new Event("bv:update")); };
 
   const cmp = (a, b) => { const x = String(a).split(".").map(Number), y = String(b).split(".").map(Number); for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d < 0 ? -1 : 1; } return 0; };
 
-  // Where new versions are announced: the publisher's website (installUrl), or the site this copy is running from
-  function versionUrl() {
+  // The site's top folder: the publisher's website (installUrl), or the site this copy is running from.
+  // (An older release runs from <site>/versions/<x.y>/, so its folder is cut off to get back to the top.)
+  const archived = () => !isAndroid() && /\/versions\/\d+(\.\d+)*\//.test(location.pathname);
+  function siteRoot() {
     const base = CFG().installUrl;
-    if (base) { try { return new URL("version.json", base.endsWith("/") ? base : base + "/").href; } catch { return ""; } }
-    if (!isAndroid() && /^https?:$/.test(location.protocol)) return new URL("version.json", location.href).href;
+    if (base) { try { return new URL(base.endsWith("/") ? base : base + "/").href; } catch { return ""; } }
+    if (!isAndroid() && /^https?:$/.test(location.protocol) && location.origin !== "null") {
+      const u = new URL(location.href); u.search = ""; u.hash = "";
+      u.pathname = u.pathname.replace(/versions\/\d+(\.\d+)*\/[^/]*$/, "").replace(/[^/]*$/, "");
+      return u.href;
+    }
     return "";
   }
+  const versionUrl = () => { const r = siteRoot(); return r ? r + "version.json" : ""; };
   const nativeApi = () => (isAndroid() ? android().ota()?.api || 1 : 99);
   const otaOn = () => !isAndroid() || !!android().ota()?.enabled;
 
@@ -51,8 +58,50 @@
       if (updates.available()) announce();
       return updates.available();
     },
+    // ---- Versions: every release is kept on the site, so people can go back to an older one or forward to a newer one
+    versionsOk: () => isAndroid() ? otaOn() : !!siteRoot(),
+    isOlderCopy: () => archived(),
+    latest: () => (st.versions || []).slice(-1)[0] || null,
+    async versions(force) {
+      if (st.versions && !force) return st.versions;
+      if (!updates.versionsOk()) { st.vError = isAndroid() ? "The publisher hasn't set the update address yet" : "Switching versions needs the hosted website"; emit(); return []; }
+      st.vLoading = true; st.vError = ""; emit();
+      try {
+        const base = isAndroid() ? CFG().installUrl : siteRoot();
+        const r = await fetch(new URL("versions/index.json?t=" + Date.now(), base.endsWith("/") ? base : base + "/").href, { cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const j = await r.json();
+        st.versions = (Array.isArray(j.versions) ? j.versions : [])
+          .filter(v => v && /^\d+(\.\d+){0,3}$/.test(v.version) && /^[a-f0-9]{12}$/.test(v.build || ""))
+          .map(v => ({ version: v.version, build: v.build, native: +v.native || 1, released: String(v.released || ""), notes: Array.isArray(v.notes) ? v.notes.slice(0, 4).map(String) : [] }))
+          .sort((a, b) => cmp(a.version, b.version));
+      } catch (e) { st.vError = navigator.onLine === false ? "You're offline" : "Couldn't load the list of versions"; }
+      st.vLoading = false; emit();
+      return st.versions || [];
+    },
+    // why a version can't be used here, or "" if it can
+    blocked(v) { return v.native > nativeApi() ? "Needs a newer Android app (Google Play)" : ""; },
+    rel(v) { const c = cmp(v, local().version); return c === 0 ? "current" : c < 0 ? "older" : "newer"; },
+    async switchTo(ver) {
+      if (st.applying) return false;
+      const list = await updates.versions(); const e = list.find(x => x.version === ver);
+      if (!e) { st.vError = "That version isn't available"; emit(); return false; }
+      if (e.version === local().version && !archived()) { os()?.toast("You're already on " + ver); return false; }
+      if (updates.blocked(e)) { st.vError = updates.blocked(e); emit(); return false; }
+      store.set("updPending", { to: e.version, build: e.build, notes: e.notes, kind: "switch" });
+      const latest = updates.latest();
+      st.applying = true; st.pct = 0; st.msg = "Switching to " + e.version + "…"; st.vError = ""; emit();
+      if (isAndroid()) { android().otaSwitch(e.version); return true; }       // progress arrives as "bv:ota"; the app reloads itself
+      setTimeout(() => {
+        const root = siteRoot();
+        if (latest && e.version === latest.version) { store.del("pin"); location.href = root + "?bvlatest=1"; }
+        else { store.set("pin", e.version); location.href = root + "versions/" + e.version + "/index.html"; }
+      }, 300);
+      return true;
+    },
     async apply() {
       if (st.applying) return;
+      if (archived()) { await updates.versions(true); const l = updates.latest(); if (l) return updates.switchTo(l.version); }
       if (!updates.available()) return os()?.toast("✅ Blockvile is up to date");
       const target = st.remote.version;
       if (updates.needsStore()) { android()?.playUpdate?.(); return os()?.toast("This update comes through Google Play"); }
@@ -87,7 +136,7 @@
         <div class="list">
           <button data-k="checkUpdate"><span><b>🔄 Check for updates</b><br><small>${st.checking ? "Checking…" : st.applying ? "Updating…" : av ? "Blockvile " + esc(r.version) + " is ready" : st.error ? "⚠️ " + esc(st.error) : "Version " + esc(local().version) + (st.last ? " · last checked " + new Date(st.last).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "")}</small></span><small>›</small></button>
           ${av && !st.applying ? `<button data-k="applyUpdate"><span><b style="color:var(--accent)">⬆️ Update now to ${esc(r.version)}</b><br><small>Nothing installs until you tap this</small></span><small>›</small></button>` : ""}
-          <button data-k="openUpdates"><span>Software Update app<br><small>Notes, history and details</small></span><small>›</small></button>
+          <button data-k="openUpdates"><span>OS Update app<br><small>Updates, versions and history</small></span><small>›</small></button>
         </div>`;
     },
     history: () => store.get("updHistory", []),
@@ -124,20 +173,56 @@
     const p = store.get("updPending", null); if (!p) return;
     store.del("updPending");
     if (p.build && local().build === p.build) {     // only say so if the new version is really the one running now
-      store.set("updHistory", [{ version: local().version, build: local().build, date: new Date().toISOString(), notes: p.notes || [] }, ...store.get("updHistory", [])].slice(0, 12));
-      setTimeout(() => os()?.notify({ app: "updates", action: "update", icon: "✅", title: "Blockvile updated", text: "You're on version " + local().version + (p.notes?.length ? " — " + p.notes[0] : ""), sound: false }), 1500);
+      store.set("updHistory", [{ version: local().version, build: local().build, date: new Date().toISOString(), notes: p.notes || [], kind: p.kind || "" }, ...store.get("updHistory", [])].slice(0, 12));
+      setTimeout(() => os()?.notify({ app: "updates", action: "update", icon: "✅", title: p.kind === "switch" ? "Version switched" : "Blockvile updated", text: "You're on version " + local().version + (p.notes?.length ? " — " + p.notes[0] : ""), sound: false }), 1500);
     }
   }
+
+  // ---- Link with the Blockvile Updater (Supabase, same account): this device reports its version, and shows
+  //      a card when the Updater asks it to switch. Nothing changes until the person taps.
+  const link = { request: null, last: 0 };
+  async function linkSync() {
+    const A = window.BV.auth;
+    if (!A?.configured?.() || !A.signedIn?.()) { if (link.request) { link.request = null; emit(); } return; }
+    if (Date.now() - link.last < 15000) return; link.last = Date.now();
+    try {
+      const c = await A.client(), S = window.BV.services, key = S.deviceKey(), l = local();
+      await c.from("os_status").upsert({ user_id: A.user.id, device_key: key, name: S.deviceName(), version: l.version, build: l.build || null, kind: updates.kind(), seen_at: new Date().toISOString() }, { onConflict: "user_id,device_key" });
+      const { data } = await c.from("os_requests").select("*").eq("device_key", key).eq("status", "pending").order("created_at", { ascending: false }).limit(1);
+      const r = data && data[0];
+      if (r && /^\d+(\.\d+){0,3}$/.test(r.version)) {
+        if (r.version === l.version && !archived()) { await c.from("os_requests").update({ status: "done" }).eq("id", r.id); link.request = null; }
+        else {
+          link.request = { id: r.id, version: r.version };
+          if (store.get("reqNotified", 0) !== r.id) { store.set("reqNotified", r.id); os()?.notify({ app: "updates", action: "update", icon: "🔗", title: "Updater request", text: `Your Updater asked to switch to Blockvile ${r.version}. Tap to review.` }); }
+        }
+      } else link.request = null;
+      emit();
+    } catch { }
+  }
+  updates.request = () => link.request;
+  updates.sync = linkSync;
+  updates.answer = async accept => {
+    const r = link.request; if (!r) return false;
+    try { const c = await window.BV.auth.client(); await c.from("os_requests").update({ status: accept ? "done" : "dismissed" }).eq("id", r.id); } catch { }
+    link.request = null; emit();
+    return accept ? updates.switchTo(r.version) : true;
+  };
+  window.addEventListener("bv:auth", () => { link.last = 0; setTimeout(linkSync, 800); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) linkSync(); });
+  setInterval(() => { if (!document.hidden) linkSync(); }, 300000);
 
   window.BV.updates = updates;
 
   /* ================= Software Update app ================= */
   window.BV_APPS.push({
-    id: "updates", name: "Software Update", icon: "⬆️", bg: "linear-gradient(135deg,#22c55e,#0ea5e9)", cat: "System", system: true, size: [460, 580],
-    keywords: "update upgrade software update new version install latest check patch app update",
+    id: "updates", name: "OS Update", icon: "⬆️", bg: "linear-gradient(135deg,#22c55e,#0ea5e9)", cat: "System", system: true, size: [460, 580],
+    keywords: "os update switch version older newer downgrade rollback versions upgrade software update new version install latest check patch app update",
     render(body, os) {
       const when = t => { if (!t) return "never"; const m = (Date.now() - t) / 6e4; return m < 1 ? "just now" : m < 60 ? Math.floor(m) + " min ago" : m < 1440 ? Math.floor(m / 60) + " h ago" : new Date(t).toLocaleDateString(); };
+      let tab = "update", confirmV = "";
       const draw = () => {
+        if (tab === "versions") return drawVersions();
         const l = local(), r = st.remote, av = updates.available(), store_ = updates.needsStore();
         const ota = isAndroid() ? android().ota() || {} : null;
         const state = st.applying ? "busy" : st.error ? "err" : st.checking ? "check" : av ? "new" : r ? "ok" : "idle";
@@ -145,7 +230,9 @@
         const sub = { busy: esc(st.msg || "Working…"), err: esc(st.error), check: "Looking for a newer version…", new: `Blockvile Plus ${esc(r?.version || "")} is ready`, ok: `Version ${esc(l.version)} is the latest`, idle: `You have version ${esc(l.version)}` }[state];
         const ic = { busy: "⏳", err: "⚠️", check: "🔄", new: "⬆️", ok: "✅", idle: "⬆️" }[state];
         const history = updates.history();
-        body.innerHTML = `<div class="upd">
+        const rq = updates.request();
+        body.innerHTML = `<div class="upd">${tabs()}
+          ${rq ? `<div class="upd-card"><b>🔗 Request from your Updater</b><p class="muted" style="margin:6px 0 10px;font-size:13px">Your Blockvile Updater asked this device to ${updates.rel(rq.version) === "older" ? "go back to" : "move to"} <b>${esc(rq.version)}</b>. Nothing changes unless you agree.</p><button class="btn" data-u="req-yes">Switch to ${esc(rq.version)}</button> <button class="btn ghost" data-u="req-no">Not now</button></div>` : ""}
           <div class="upd-hero ${state}"><div class="upd-ic">${ic}</div><h2>${title}</h2><p>${sub}</p>
             ${st.applying ? `<div class="upd-bar"><i style="width:${Math.max(6, st.pct)}%"></i></div>` : ""}
             ${av && !st.applying ? `<button class="btn" data-u="now">${store_ ? "Update on Google Play" : "Update now"}</button>` : ""}
@@ -163,7 +250,27 @@
             <div><span>Updates come from</span><b style="font-size:13px">${esc((() => { try { return new URL(versionUrl()).host; } catch { return "not set"; } })())}</b></div>
             <div><span>Last checked</span><b>${when(st.last)}</b></div>
           </div>
-          ${history.length ? `<div class="h2">Update history</div><div class="list">${history.map(h => `<div><span>Blockvile ${esc(h.version)}<br><small>${esc(h.notes?.[0] || "")}</small></span><small>${new Date(h.date).toLocaleDateString()}</small></div>`).join("")}</div>` : ""}
+          ${history.length ? `<div class="h2">Update history</div><div class="list">${history.map(h => `<div><span>${h.kind === "switch" ? "Switched to " : ""}Blockvile ${esc(h.version)}<br><small>${esc(h.notes?.[0] || "")}</small></span><small>${new Date(h.date).toLocaleDateString()}</small></div>`).join("")}</div>` : ""}
+        </div>`;
+      };
+      const tabs = () => `<div class="upd-tabs"><button class="${tab === "update" ? "on" : ""}" data-u="tab-update">Update</button><button class="${tab === "versions" ? "on" : ""}" data-u="tab-versions">Versions</button></div>`;
+      const drawVersions = () => {
+        const list = st.versions || [], cur = local().version, latest = updates.latest();
+        const rows = list.slice().reverse().map(v => {
+          const rel = updates.rel(v.version), bad = updates.blocked(v), isCur = rel === "current" && !updates.isOlderCopy();
+          const tag = isCur ? "Current" : latest && v.version === latest.version ? "Latest" : rel === "older" ? "Older" : "Newer";
+          const act = isCur ? "" : bad ? `<small class="muted">${esc(bad)}</small>`
+            : confirmV === v.version ? `<button class="btn" data-u="go" data-v="${esc(v.version)}">Confirm</button>` : `<button class="btn ghost" data-u="ask" data-v="${esc(v.version)}">${rel === "older" ? "Switch back" : "Switch"}</button>`;
+          return `<div class="upd-ver"><span><b>Blockvile ${esc(v.version)}</b> <em class="upd-tag ${tag.toLowerCase()}">${tag}</em><br><small>${esc(v.released)}${v.notes[0] ? " · " + esc(v.notes[0]) : ""}</small></span>${act}</div>`;
+        }).join("");
+        body.innerHTML = `<div class="upd">${tabs()}
+          <div class="upd-card"><b>Choose your version</b><p class="muted" style="margin:6px 0 0;font-size:13px">You're on <b>${esc(cur)}</b>${updates.isOlderCopy() ? " (an older copy)" : ""}. Move to an older version if a new one doesn't suit you, or to a newer one any time. Your apps, files and settings stay as they are. Older versions may be missing newer features and fixes, so switch back to the latest when you can.</p></div>
+          ${st.applying ? `<div class="upd-hero busy"><div class="upd-ic">⏳</div><h2>Switching…</h2><p>${esc(st.msg || "")}</p><div class="upd-bar"><i style="width:${Math.max(6, st.pct)}%"></i></div></div>` : ""}
+          ${st.vError ? `<p class="er" style="margin:0 4px 10px">⚠️ ${esc(st.vError)}</p>` : ""}
+          ${st.vLoading ? `<p class="muted" style="margin:0 4px">Loading versions…</p>` : rows ? `<div class="list">${rows}</div>` : st.vError ? "" : `<p class="muted" style="margin:0 4px">No versions found.</p>`}
+          <p class="muted" style="font-size:13px;margin:12px 4px">Terminal: <code>switch version</code> shows this list, <code>switch version 3.15 now</code> switches.</p>
+          ${isAndroid() || !siteRoot() ? "" : `<p class="muted" style="font-size:13px;margin:0 4px 10px">Want it as its own app? Open <a href="${esc(siteRoot())}updater.html" target="_blank" rel="noopener">the standalone Blockvile Updater</a> and install it to your home screen.</p>`}
+          <button class="btn ghost" data-u="reload" ${st.vLoading ? "disabled" : ""}>Refresh list</button>
         </div>`;
       };
       const on = () => { if (!body.isConnected) return window.removeEventListener("bv:update", on); draw(); };
@@ -173,11 +280,17 @@
         const a = b.dataset.u;
         if (a === "check") { const has = await updates.check(true); if (!has && !st.error) os.toast("✅ Blockvile is up to date"); draw(); }
         if (a === "now") updates.apply();
+        if (a === "req-yes") { await updates.answer(true); return draw(); }
+        if (a === "req-no") { await updates.answer(false); return draw(); }
+        if (a === "tab-update" || a === "tab-versions") { tab = a === "tab-update" ? "update" : "versions"; confirmV = ""; draw(); if (tab === "versions" && !st.versions) updates.versions(); return; }
+        if (a === "reload") { await updates.versions(true); return; }
+        if (a === "ask") { confirmV = b.dataset.v; return draw(); }
+        if (a === "go") { confirmV = ""; await updates.switchTo(b.dataset.v); return draw(); }
         if (a === "install") os.installApp();
       });
-      draw();
+      draw(); updates.sync?.();
       if (updates.configured() && (!st.last || Date.now() - st.last > 60000)) updates.check(false);   // opening the app checks
     }
   });
-  window.addEventListener("load", () => { emit(); justUpdated(); setTimeout(() => autoCheck(true), 6000); });
+  window.addEventListener("load", () => { emit(); justUpdated(); setTimeout(() => autoCheck(true), 6000); setTimeout(linkSync, 5000); });
 })();
