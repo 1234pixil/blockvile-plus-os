@@ -1,6 +1,6 @@
 /* Blockvile Plus OS — settings for whoever publishes Blockvile. Edit these, then rebuild the one-file version. */
 window.BV_CONFIG = {
-  version: "3.10",
+  version: "3.20",
 
   // Raise this number ONLY when a release needs a newer Android app (changes to android/…). Installed apps then send
   // the user to Google Play for that update instead of updating by themselves. Web-only changes never need it.
