@@ -1,4 +1,4 @@
-/* Blockvile Plus OS — Blockvile Store, Cloud Music, web apps and extra installable apps */
+/* Blockvile Plus OS — Play Store, Cloud Music, web apps and extra installable apps */
 (() => {
   const { esc, store } = window.BV;
   const A = window.BV_APPS;
@@ -8,7 +8,7 @@
   /* ================= Web apps (any website added from the Store) ================= */
   const webApp = w => ({
     id: w.id, name: w.name, icon: w.icon || "🌐", bg: w.bg || "linear-gradient(135deg,#64748b,#334155)", cat: "Web apps", web: true, net: true, url: w.url, external: !!w.external,
-    launch: w.external ? () => window.open(w.url, "_blank", "noopener") : undefined,
+    launch: w.external ? () => window.BV.openWeb(w.url, w.name) : undefined,
     render(body) {
       body.style.padding = "0";
       body.innerHTML = `<div class="toolbar" style="padding:8px 10px;margin:0;border-bottom:1px solid var(--line)"><small class="muted" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(w.url)}</small>
@@ -84,13 +84,13 @@
   function openPlay(pkg) {
     const name = ANDROID_APPS.find(a => a[0] === pkg)?.[1];
     store.set("playSent", [{ pkg, name, t: Date.now() }, ...store.get("playSent", []).filter(x => x.pkg !== pkg)].slice(0, 20));
-    if (NAT()) NAT().openPlay(pkg); else window.open(PLAY_APP(pkg), "_blank", "noopener");
+    if (NAT()) NAT().openPlay(pkg); else window.BV.openWeb(PLAY_APP(pkg), "Google Play");
   }
-  const playSearch = q => NAT() ? NAT().search(q) : window.open(PLAY_SEARCH(q), "_blank", "noopener");
+  const playSearch = q => window.BV.openWeb(PLAY_SEARCH(q), "Google Play");   // browsing Play stays inside Blockvile
 
-  /* ================= Blockvile Store (Play-Store-style) ================= */
+  /* ================= Play Store (Play-Store-style) ================= */
   A.push({
-    id: "store", name: "Blockvile Store", icon: "🛍", bg: "linear-gradient(135deg,#22c55e 0%,#2f6bff 55%,#ff6a3d 100%)", cat: "System", system: true, dock: true,
+    id: "store", name: "Play Store", icon: "🛍", bg: "linear-gradient(135deg,#22c55e 0%,#2f6bff 55%,#ff6a3d 100%)", cat: "System", system: true, dock: true,
     keywords: "app store play store install apps download games", size: [820, 640],
     render(body, os, args) {
       let tab = args?.tab || "home", q = "", detail = null, cat = null; const installing = {};
@@ -153,6 +153,14 @@
             ${groups.map(g => `<div class="ps-sec"><h3>${g}</h3>${ANDROID_APPS.filter(a => a[2] === g).map(arow).join("")}</div>`).join("")}
             <p class="muted" style="font-size:11px;margin-top:14px">App names belong to their owners. Blockvile isn't affiliated with Google Play or these apps.</p>`;
         },
+        play() {
+          const links = [["🏠", "Google Play home", "https://play.google.com/store/apps"], ["🎮", "Games", "https://play.google.com/store/games"], ["🏆", "Top charts", "https://play.google.com/store/apps/top"], ["🆕", "New apps", "https://play.google.com/store/apps/new"], ["🎬", "Movies & TV", "https://play.google.com/store/movies"], ["📚", "Books", "https://play.google.com/store/books"]];
+          return `<div class="ps-note"><b>▶ Google Play, inside Blockvile</b><p>${NAT()
+              ? "Browse Google Play here without leaving Blockvile. When you tap <b>Install</b>, the real Google Play app finishes the install — only Google Play can install apps — then you come back."
+              : "In the <b>Blockvile Android app</b> Google Play opens right inside Blockvile. On the web, Google doesn't allow Play to be shown inside other pages, so it can't be embedded here — use the Android tab for one-tap hand-off, or the Android app."}</p></div>
+            <div class="ps-sec"><h3>Search Google Play</h3><div class="toolbar"><input class="field" data-play placeholder="App or game name" style="flex:1;min-width:180px"><button class="btn" data-playgo>Search</button></div></div>
+            <div class="ps-sec"><h3>Browse</h3><div class="ps-cats">${links.map(([i, n, u]) => `<button data-playweb="${u}"><span>${i}</span>${n}</button>`).join("")}</div></div>`;
+        },
         lib() {
           const inst = all().filter(a => os.isInstalled(a.id)), webs = store.get("webapps", []);
           return `<div class="ps-sec"><h3>➕ Add a website as an app</h3>
@@ -184,7 +192,7 @@
       };
       const draw = () => {
         const sc = body.querySelector(".ps-main")?.scrollTop || 0;
-        const tabsHtml = [["home", "🏠", "For you"], ["top", "🏆", "Top charts"], ["cats", "🗂", "Categories"], ["android", "🤖", "Android"], ["lib", "📦", "Library"]].map(([k, i, l]) => `<button data-tab="${k}" class="${tab === k && !detail && !q ? "on" : ""}"><span>${i}</span>${l}</button>`).join("");
+        const tabsHtml = [["home", "🏠", "For you"], ["top", "🏆", "Top charts"], ["cats", "🗂", "Categories"], ["play", "▶", "Google Play"], ["android", "🤖", "Android"], ["lib", "📦", "Library"]].map(([k, i, l]) => `<button data-tab="${k}" class="${tab === k && !detail && !q ? "on" : ""}"><span>${i}</span>${l}</button>`).join("");
         const content = detail ? detailView(os.apps().find(a => a.id === detail) || all()[0]) : q ? views.search() : views[tab]();
         body.innerHTML = `<div class="ps"><div class="ps-top"><div class="ps-search">⌕<input data-q placeholder="Search apps & games" value="${esc(q)}" aria-label="Search apps">${q ? `<button data-clear>✕</button>` : ""}</div></div>
           <div class="ps-main">${content}</div><nav class="ps-tabs">${tabsHtml}</nav></div>`;
@@ -212,6 +220,7 @@
           return draw(); }
         const c = e.target.closest("[data-cat]"); if (c) { cat = c.dataset.cat || null; return draw(); }
         if (e.target.closest("[data-back]")) { detail = null; return draw(); }
+        const pw = e.target.closest("[data-playweb]"); if (pw) return window.BV.openWeb(pw.dataset.playweb, "Google Play");
         const pg = e.target.closest("[data-playget]"); if (pg) { e.stopPropagation(); openPlay(pg.dataset.playget); return draw(); }
         const ps = e.target.closest("[data-playsearch]"); if (ps) return playSearch(ps.dataset.playsearch);
         const no = e.target.closest("[data-natopen]"); if (no) { e.stopPropagation(); return NAT()?.launch(no.dataset.natopen); }
@@ -291,9 +300,9 @@
         const p = e.target.closest("[data-play]"); if (p) return play(lib().find(x => x.id === p.dataset.play));
         if (e.target.closest("[data-prev]")) return step(-1);
         if (e.target.closest("[data-next]")) return step(1);
-        if (e.target.closest("[data-ext]") && cur) return window.open(cur.url, "_blank", "noopener");
-        const g = e.target.closest("[data-genre]"); if (g) return window.open("https://soundcloud.com/search?q=" + encodeURIComponent(g.dataset.genre), "_blank", "noopener");
-        if (e.target.closest("[data-search]")) { const q = body.querySelector("[data-sq]").value.trim(); if (q) window.open("https://soundcloud.com/search?q=" + encodeURIComponent(q), "_blank", "noopener"); return; }
+        if (e.target.closest("[data-ext]") && cur) return window.BV.openWeb(cur.url, cur.title || "SoundCloud");
+        const g = e.target.closest("[data-genre]"); if (g) return window.BV.openWeb("https://soundcloud.com/search?q=" + encodeURIComponent(g.dataset.genre), "SoundCloud");
+        if (e.target.closest("[data-search]")) { const q = body.querySelector("[data-sq]").value.trim(); if (q) window.BV.openWeb("https://soundcloud.com/search?q=" + encodeURIComponent(q), "SoundCloud"); return; }
         if (e.target.closest("[data-addplay]") || e.target.closest("[data-addonly]")) {
           const v = body.querySelector("[data-url]").value; if (!v.trim()) return;
           const item = await add(v); if (!item) return;
