@@ -140,7 +140,7 @@
   function openService(pkg, url) {
     const a = window.BV.android;
     if (a?.available && pkg && a.installed(pkg)) return a.launch(pkg);
-    window.open(url, "_blank", "noopener");
+    window.BV.openWeb(url);   // websites open inside Blockvile
   }
   // What we can read once the user has allowed it (token lives for this visit only and is never saved)
   async function get(url, token) {
@@ -298,7 +298,7 @@
         const t = e.target.closest("[data-tab]"); if (t) { tab = t.dataset.tab; note = ""; return draw(); }
         const svc = e.target.closest("[data-svc]");
         if (svc) { const row = SERVICES[svc.dataset.svc].apps.find(a => a[1] === svc.dataset.n); return openService(row[2], row[3]); }
-        const u = e.target.closest("[data-url]"); if (u && u.dataset.url) return window.open(u.dataset.url, "_blank", "noopener");
+        const u = e.target.closest("[data-url]"); if (u && u.dataset.url) return window.BV.openWeb(u.dataset.url);
         const ul = e.target.closest("[data-unlink]"); if (ul) return run(async () => { await devices.unlink(ul.dataset.unlink); devs = await devices.list(); });
         const b = e.target.closest("[data-do]"); if (!b) return;
         const act = b.dataset.do;
