@@ -1,0 +1,148 @@
+{
+ "version": "3.20",
+ "build": "aac4431a558e",
+ "native": 1,
+ "released": "2026-10-18",
+ "notes": [
+  "Link with the new separate Blockvile Updater: sign in on both and the Updater can ask this device to switch version (you still tap to agree)",
+  "Blockvile Updater page: Check/Update now buttons and install from a zip or folder",
+  "OS Update app Versions tab; Terminal: switch version"
+ ],
+ "files": [
+  {
+   "path": "css/style.css",
+   "sha256": "4dbd6ae5fe5bcd5ab2a6bad011768ca485cba46e42a783cae139a1ece304efe9",
+   "size": 57863
+  },
+  {
+   "path": "icons/apple-touch-icon.png",
+   "sha256": "fcb5879a8c14353b73d17049a90ebc626777e67f7bbd0a24021361b9ce12a1ef",
+   "size": 3381
+  },
+  {
+   "path": "icons/icon-192.png",
+   "sha256": "da9684bbc1c589a4056a62cdef06237f4be7a41b8fc33cc2bdd37c446a94ab4a",
+   "size": 4382
+  },
+  {
+   "path": "icons/icon-512.png",
+   "sha256": "7a3ca42fc0f6e225c8abf7b8801a5e5998ea484411352115dda3ecbab564a2f5",
+   "size": 19303
+  },
+  {
+   "path": "icons/logo.svg",
+   "sha256": "d0a148b58022adc42def03045e27616c099ec3dc8d38cdd91238e2369f6c39b7",
+   "size": 563
+  },
+  {
+   "path": "icons/maskable-512.png",
+   "sha256": "bb279867305b86ba86dff656f1c5968e28d2e8e2308adf8737862ee9183a7686",
+   "size": 14299
+  },
+  {
+   "path": "index.html",
+   "sha256": "760f27cf663ad184fa8ac7c55d31d14d77cf68ec221aef899298ecba8de1be4e",
+   "size": 15052
+  },
+  {
+   "path": "js/accounts.js",
+   "sha256": "954e2bc805372236e08cbc466ee52df73b3a8508d7c4d877256c04d10d70a9ad",
+   "size": 26781
+  },
+  {
+   "path": "js/android.js",
+   "sha256": "ca1f4be676edd1849584dc6da59aaceee4bc1bc072c5df41e170f732c30d35b9",
+   "size": 13114
+  },
+  {
+   "path": "js/apps-help.js",
+   "sha256": "4247865acb4e8c7eb9482e95132bbbaf8d7671e4ca5faab63b30e8cde7ad517b",
+   "size": 35577
+  },
+  {
+   "path": "js/apps-media.js",
+   "sha256": "21533caeb1bb926940b1ced3d8940ffa702ba6b034149a44cf42b3637fbd42be",
+   "size": 28224
+  },
+  {
+   "path": "js/apps-sim-ai.js",
+   "sha256": "d68dc33acf54d87f29f820d43f5c862488ccf9357a732f1d1dfe17f05d3f7889",
+   "size": 21895
+  },
+  {
+   "path": "js/apps-store.js",
+   "sha256": "296ac28d6dd795c4847cfe96631ae9cbf0ac9aa90d8a555c25b3d96c337889b6",
+   "size": 44667
+  },
+  {
+   "path": "js/apps-video.js",
+   "sha256": "d826b7257298b287aa4ea9cf19fabd816692d1164bf9e132dcce9063c7bd5aa6",
+   "size": 5767
+  },
+  {
+   "path": "js/apps-web.js",
+   "sha256": "8028ce1d3b8dfa69cff94b5f25e4929e547e72ee57829490016462b072303638",
+   "size": 4548
+  },
+  {
+   "path": "js/apps.js",
+   "sha256": "f1c01c610f29835f38d42ac1fbcccb59ac284a86d41fc465f79a626306a4ea78",
+   "size": 65538
+  },
+  {
+   "path": "js/build.js",
+   "sha256": "a593050fe6e12723368e4fff0aa59cb8e2770fe020111c4b3f6e997b3d900125",
+   "size": 121
+  },
+  {
+   "path": "js/config.js",
+   "sha256": "77b69a7c12f846dd11b60d370e668e69ec161edfdf550459ff903267f99de4ac",
+   "size": 1862
+  },
+  {
+   "path": "js/lib.js",
+   "sha256": "14254289e39e1979ebab43e05cfa483cae13ccb12dc6737afb1459b109dd18be",
+   "size": 11426
+  },
+  {
+   "path": "js/os.js",
+   "sha256": "01ba19e4c1cf778d8cfdd483ca3d9417371e74d63a89bb21734a75a25d0e488b",
+   "size": 60011
+  },
+  {
+   "path": "js/updates.js",
+   "sha256": "bfdf8c29b344a420daea08de4e0d9b9468e12ed10289e4d9319337141dd259af",
+   "size": 23386
+  },
+  {
+   "path": "manifest.json",
+   "sha256": "651a107bfbef82056bd82978876181f3832f618e95eeb16f0c5337a39aacc34c",
+   "size": 1333
+  },
+  {
+   "path": "privacy.html",
+   "sha256": "0e0e25224b346e7fb55597b647a396863b1415c2ea467d45404528ed60846c9a",
+   "size": 9950
+  },
+  {
+   "path": "sw.js",
+   "sha256": "98927ea879263705cbe029fe0def138f5748f71c5962870482a4d4c86c6ee75e",
+   "size": 3151
+  },
+  {
+   "path": "tube.html",
+   "sha256": "9600278c4991f18246b022acb026cb10d357c39e3415ce7ded8f63d763bda9d6",
+   "size": 87098
+  },
+  {
+   "path": "updater.html",
+   "sha256": "a317533deb2615dac061b9933bcfda920df5c031ecc4feb6fd34f3da66531d8c",
+   "size": 14479
+  },
+  {
+   "path": "updater.webmanifest",
+   "sha256": "d974fd231d447d5b2e422cde3063bb57c1cce069c446a748421344c27d7d5d90",
+   "size": 392
+  }
+ ]
+}
