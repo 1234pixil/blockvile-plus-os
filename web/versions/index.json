@@ -1,0 +1,69 @@
+{
+ "versions": [
+  {
+   "version": "3.15",
+   "build": "effcbd4718d5",
+   "native": 1,
+   "released": "2026-10-18",
+   "notes": [
+    "YouTube is now the Tube page with real trending and search; the publisher's YouTube key stays on the server, never in the app",
+    "Likes, subscriptions, watch later and history are saved on the device"
+   ]
+  },
+  {
+   "version": "3.16",
+   "build": "0acd786921cc",
+   "native": 1,
+   "released": "2026-10-18",
+   "notes": [
+    "New OS Update app: Update and Versions tabs in one place",
+    "Switch to an older or newer version any time (Terminal: switch version); your apps, files and settings stay",
+    "Every release is kept on the site so you can always go back"
+   ]
+  },
+  {
+   "version": "3.17",
+   "build": "26f560b5f379",
+   "native": 1,
+   "released": "2026-10-18",
+   "notes": [
+    "New separate Blockvile Updater app (updater.html): its own icon and window for updating the OS or switching version",
+    "OS Update app has Update and Versions tabs; Terminal: switch version",
+    "Every release is kept so you can always go back"
+   ]
+  },
+  {
+   "version": "3.18",
+   "build": "35cf6f8c543a",
+   "native": 1,
+   "released": "2026-10-18",
+   "notes": [
+    "Blockvile Updater: Check/Update now buttons, and install an update from a zip you choose (works offline)",
+    "Separate updater app (updater.html) with its own icon",
+    "OS Update app Versions tab; Terminal: switch version"
+   ]
+  },
+  {
+   "version": "3.19",
+   "build": "203d1ecfe27a",
+   "native": 1,
+   "released": "2026-10-18",
+   "notes": [
+    "Blockvile Updater: Check/Update now buttons, and install an update from a zip you choose (works offline)",
+    "Separate updater app (updater.html) with its own icon",
+    "OS Update app Versions tab; Terminal: switch version"
+   ]
+  },
+  {
+   "version": "3.20",
+   "build": "aac4431a558e",
+   "native": 1,
+   "released": "2026-10-18",
+   "notes": [
+    "Link with the new separate Blockvile Updater: sign in on both and the Updater can ask this device to switch version (you still tap to agree)",
+    "Blockvile Updater page: Check/Update now buttons and install from a zip or folder",
+    "OS Update app Versions tab; Terminal: switch version"
+   ]
+  }
+ ]
+}
