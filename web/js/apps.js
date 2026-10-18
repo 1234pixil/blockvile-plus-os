@@ -273,7 +273,15 @@
   mode phone|tablet|laptop            calc <sum>       calculator
   notify <text>     notification      weather          current weather
   date  whoami  uptime  history  neofetch  clear  lock  reboot  shutdown  exit
+  ai <question>     ask Blockvile AI           ai model fast|balanced|smart   pick the AI model
+  account           who is signed in           signin google|microsoft   or   signin <email> <password>
+  signup <email> <password> [name]             signout   reset <email>   (password reset email)
+  sim               your Digital SIM           sim send <BV 1234 5678> <message>
+  devices           linked devices             devices link | devices unlink <number>
+  services          Google & Microsoft apps    services open <name>
   update            check for a new version      update now   install it (only when you type this)
+  switch version    list versions (older & newer)   switch version <x.y> now   move to that version
+                    switch version latest now   go back to the newest   (also spelled: swich version)
 
 Temporary takeover (Blockvile runs the whole device for a while — never permanent):
   application takeover   start a temporary takeover of this device
@@ -341,6 +349,109 @@ Temporary takeover (Blockvile runs the whole device for a while — never perman
           print(`Updating to ${U.state.remote.version}… Blockvile will restart when it is done.`, "ac");
           await U.apply();
         },
+        switch: async a => {
+          const U = window.BV.updates; if (!U) throw new Error("updates are not available");
+          if ((a[0] || "").toLowerCase() !== "version") throw new Error("usage: switch version [<x.y> now | latest now]");
+          if (!U.versionsOk()) return print(window.BV.android?.available ? "The publisher hasn't set the update address yet." : "Switching versions needs the hosted website (or the Android app).", "er");
+          const cur = U.local().version;
+          const list = await U.versions(true);
+          if (U.state.vError) return print("⚠️ " + U.state.vError, "er");
+          if (!list.length) return print("No versions found.");
+          const want = (a[1] || "").toLowerCase();
+          if (!want) {
+            const latest = U.latest();
+            print(list.slice().reverse().map(v => {
+              const r = U.rel(v.version), tag = r === "current" && !U.isOlderCopy() ? "current" : latest && v.version === latest.version ? "latest" : r;
+              const bad = U.blocked(v);
+              return `${tag === "current" ? "●" : "○"} ${v.version.padEnd(7)} ${tag.padEnd(8)} ${v.released}${bad ? "  (" + bad + ")" : ""}${v.notes[0] ? "\n          " + v.notes[0] : ""}`;
+            }).join("\n") + `\nYou are on ${cur}. Switch with: switch version <number> now` + (U.request() ? `\nYour Updater asked for ${U.request().version}: switch version ${U.request().version} now` : ""));
+            return;
+          }
+          const v = want === "latest" ? U.latest() : list.find(x => x.version === a[1]);
+          if (!v) throw new Error("no such version: " + a[1] + " (type 'switch version' to see them)");
+          if (v.version === cur && !U.isOlderCopy()) return print(`You're already on ${cur}.`, "ac");
+          const bad = U.blocked(v); if (bad) return print("⚠️ " + bad, "er");
+          const r = U.rel(v.version);
+          if ((a[2] || "").toLowerCase() !== "now") {
+            print(`${r === "older" ? "Going back to" : "Moving to"} ${v.version}. Your apps, files and settings stay as they are.` + (r === "older" ? " Older versions may lack newer features and fixes." : ""));
+            return print(`Type 'switch version ${v.version} now' to do it.`);
+          }
+          print(`Switching to ${v.version}… Blockvile will restart.`, "ac");
+          if (U.request()?.version === v.version) await U.answer(true); else await U.switchTo(v.version);
+        },
+        swich: (a, raw) => cmds.switch(a, raw),
+        ai: async (a, raw) => {
+          const AI = window.BV.ai; if (!AI) throw new Error("AI is not available");
+          const sub = (a[0] || "").toLowerCase();
+          if (sub === "model") {
+            if (!a[1]) return print(Object.entries(AI.models).map(([k, v]) => `${k === AI.model() ? "●" : "○"} ${k.padEnd(9)} ${v.name} — ${v.note}`).join("\n") + "\nChange it with: ai model fast|balanced|smart");
+            AI.setModel(a[1].toLowerCase()); return print(`AI model is now ${AI.models[AI.model()].name}.`, "ac");
+          }
+          const q = raw.replace(/^ai\s*/, "").trim(); if (!q) throw new Error("usage: ai <question>  |  ai model [fast|balanced|smart]");
+          print("Thinking…");
+          const r = await AI.cloud([{ role: "user", content: q }]);
+          print(r.replace(/\[\[action:[^\]]*\]\]/gi, "").trim());
+        },
+        account: () => {
+          const A = window.BV.auth; if (!A) throw new Error("accounts are not available");
+          if (!A.configured()) return print("Sign-in isn't set up yet. Open Accounts → Setup and paste your Supabase address and key (see SUPABASE-SETUP.md).");
+          if (!A.signedIn()) return print("Not signed in. Type: signin google | signin microsoft | signin <email> <password>   (new? signup <email> <password>)");
+          print(`${A.name()} <${A.email()}>  ·  signed in with ${A.provider() === "azure" ? "Microsoft" : A.provider()}`, "ac");
+          print("Digital SIM, linked devices and the AI are unlocked. Type 'sim', 'devices' or 'ai <question>'.");
+        },
+        signin: async a => {
+          const A = window.BV.auth; if (!A.configured()) throw new Error("sign-in isn't set up yet — open Accounts → Setup");
+          if (A.signedIn()) return print(`Already signed in as ${A.email()}. Type 'signout' first to switch.`);
+          const w = (a[0] || "").toLowerCase();
+          if (w === "google" || w === "microsoft") { print(`Opening ${w === "google" ? "Google" : "Microsoft"} sign-in…`, "ac"); return A.oauth(w === "google" ? "google" : "azure", false); }
+          if (!a[0] || !a[1]) throw new Error("usage: signin google | signin microsoft | signin <email> <password>");
+          await A.signIn(a[0], a.slice(1).join(" ")); print(`✅ Signed in as ${A.email()}. The Digital SIM is now unlocked.`, "ac");
+        },
+        signup: async a => {
+          const A = window.BV.auth; if (!A.configured()) throw new Error("sign-in isn't set up yet — open Accounts → Setup");
+          if (!a[0] || !a[1]) throw new Error("usage: signup <email> <password> [name]");
+          if (a[1].length < 8) throw new Error("use a password of at least 8 characters");
+          const r = await A.signUp(a[0], a[1], a.slice(2).join(" "));
+          print(r.needsConfirm ? "📧 Almost done — open the email we sent to confirm your address, then type: signin <email> <password>" : "✅ Account created and signed in.", "ac");
+        },
+        signout: async () => { const A = window.BV.auth; if (!A.signedIn()) return print("You're not signed in."); await A.signOut(); print("Signed out. The Digital SIM is locked again.", "ac"); },
+        reset: async a => { if (!a[0]) throw new Error("usage: reset <email>"); await window.BV.auth.reset(a[0]); print("📧 If that address has an account, a reset link is on its way."); },
+        sim: async a => {
+          const A = window.BV.auth, S = window.BV.simApi;
+          if (!A.signedIn()) throw new Error("the Digital SIM is only for signed-in users — type 'signin'");
+          if ((a[0] || "").toLowerCase() === "send") {
+            const to = a.slice(1, 4).join(" ").toUpperCase(), body = a.slice(4).join(" ");
+            if (!/^BV \d{4} \d{4}$/.test(to) || !body) throw new Error("usage: sim send BV 1234 5678 <message>");
+            await S.send(to, body); return print(`✅ Sent to ${to}`, "ac");
+          }
+          const s = await S.status();
+          print(`Number: ${s.number}\nCharge: ${Math.round(Number(s.charge))}%${S.onWifi() ? "  (charging on Wi-Fi)" : "  (not on Wi-Fi)"}\nWi-Fi data bank: ${Math.floor(Number(s.data_mb))} / 500 MB`, "ac");
+          print("Open the Digital SIM app to read and write messages.");
+        },
+        devices: async a => {
+          const A = window.BV.auth, D = window.BV.services?.devices;
+          if (!A.signedIn()) throw new Error("sign in first — type 'signin'");
+          const sub = (a[0] || "").toLowerCase();
+          if (sub === "link") { await D.link(); return print("✅ This device is linked to your account.", "ac"); }
+          const list = await D.list();
+          if (sub === "unlink") {
+            const d = list[+a[1] - 1]; if (!d) throw new Error("usage: devices unlink <number from the list>");
+            if (D.isThis(d)) throw new Error("that's this device — unlink it from another device");
+            await D.unlink(d.id); return print(`Unlinked ${d.name}.`, "ac");
+          }
+          print(list.length ? list.map((d, i) => `${i + 1}. ${d.platform === "android" ? "📱" : "💻"} ${d.name}${D.isThis(d) ? "  (this device)" : ""}  · last seen ${new Date(d.last_seen).toLocaleDateString()}`).join("\n") : "No linked devices yet. Type 'devices link'.");
+        },
+        services: a => {
+          const V = window.BV.services; if (!V) throw new Error("services are not available");
+          const all = Object.values(V.SERVICES).flatMap(s => s.apps.map(x => ({ svc: s.name, icon: x[0], name: x[1], pkg: x[2], url: x[3] })));
+          if ((a[0] || "").toLowerCase() === "open") {
+            const q = a.slice(1).join(" ").toLowerCase(); if (!q) throw new Error("usage: services open <name>   e.g. services open gmail");
+            const hit = all.find(x => x.name.toLowerCase() === q) || all.find(x => `${x.svc} ${x.name}`.toLowerCase().includes(q)); if (!hit) throw new Error("no service called " + q);
+            V.openService(hit.pkg, hit.url); return print(`Opening ${hit.svc} ${hit.name}…`, "ac");
+          }
+          for (const s of Object.values(V.SERVICES)) print(`${s.icon} ${s.name}: ${s.apps.map(x => x[1]).join(", ")}`);
+          print("Open one with: services open <name>");
+        },
         application: async a => {
           const sub = (a[0] || "").toLowerCase(), on = os.isTakeover();
           if (sub === "exit") {
@@ -362,8 +473,10 @@ Temporary takeover (Blockvile runs the whole device for a while — never perman
         },
       };
       const run = async raw => {
-        raw = raw.trim(); print(`${ps.textContent} ${raw}`, "pr"); if (!raw) return;
-        hist.push(raw); os.store.set("termhist", hist.slice(-100)); hi = hist.length;
+        raw = raw.trim(); if (!raw) return print(`${ps.textContent}`, "pr");
+        const shown = /^(signin|signup)\s+\S+\s+\S/.test(raw) ? raw.replace(/^(\S+\s+\S+\s+).*/, "$1••••••••") : raw;   // never show or remember passwords
+        print(`${ps.textContent} ${shown}`, "pr");
+        hist.push(shown); os.store.set("termhist", hist.slice(-100)); hi = hist.length;
         const [c, ...a] = raw.split(/\s+/);
         if (!cmds[c]) return print(`${c}: command not found (type 'help')`, "er");
         try { await cmds[c](a, raw); } catch (err) { print(`${c}: ${err.message}`, "er"); }
