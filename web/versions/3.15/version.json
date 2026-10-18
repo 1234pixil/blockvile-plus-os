@@ -1,0 +1,137 @@
+{
+ "version": "3.15",
+ "build": "effcbd4718d5",
+ "native": 1,
+ "released": "2026-10-18",
+ "notes": [
+  "YouTube is now the Tube page with real trending and search; the publisher's YouTube key stays on the server, never in the app",
+  "Likes, subscriptions, watch later and history are saved on the device"
+ ],
+ "files": [
+  {
+   "path": "css/style.css",
+   "sha256": "960ce518e3e81683c0cd5fdf955cb257c1393ffa5d8e66771d427ef2a31e62bb",
+   "size": 57094
+  },
+  {
+   "path": "icons/apple-touch-icon.png",
+   "sha256": "fcb5879a8c14353b73d17049a90ebc626777e67f7bbd0a24021361b9ce12a1ef",
+   "size": 3381
+  },
+  {
+   "path": "icons/icon-192.png",
+   "sha256": "da9684bbc1c589a4056a62cdef06237f4be7a41b8fc33cc2bdd37c446a94ab4a",
+   "size": 4382
+  },
+  {
+   "path": "icons/icon-512.png",
+   "sha256": "7a3ca42fc0f6e225c8abf7b8801a5e5998ea484411352115dda3ecbab564a2f5",
+   "size": 19303
+  },
+  {
+   "path": "icons/logo.svg",
+   "sha256": "d0a148b58022adc42def03045e27616c099ec3dc8d38cdd91238e2369f6c39b7",
+   "size": 563
+  },
+  {
+   "path": "icons/maskable-512.png",
+   "sha256": "bb279867305b86ba86dff656f1c5968e28d2e8e2308adf8737862ee9183a7686",
+   "size": 14299
+  },
+  {
+   "path": "index.html",
+   "sha256": "dc004ef70132fa0ddcc8d71932842f479cb51de78fcb6f9e251e98d59fbb3b05",
+   "size": 14587
+  },
+  {
+   "path": "js/accounts.js",
+   "sha256": "07f19da413625c87d284fe472684ea75c391e157c74637609ffa1acff86ed288",
+   "size": 26770
+  },
+  {
+   "path": "js/android.js",
+   "sha256": "eadde51b5115c3557906b3be86f7c3042e2b275dec762c6f7c630d0edf502275",
+   "size": 13059
+  },
+  {
+   "path": "js/apps-help.js",
+   "sha256": "1ca199f44799cb5bd7b52e3a4857517e350fb74117aaf441417c459f4207e4e6",
+   "size": 35202
+  },
+  {
+   "path": "js/apps-media.js",
+   "sha256": "21533caeb1bb926940b1ced3d8940ffa702ba6b034149a44cf42b3637fbd42be",
+   "size": 28224
+  },
+  {
+   "path": "js/apps-sim-ai.js",
+   "sha256": "d68dc33acf54d87f29f820d43f5c862488ccf9357a732f1d1dfe17f05d3f7889",
+   "size": 21895
+  },
+  {
+   "path": "js/apps-store.js",
+   "sha256": "296ac28d6dd795c4847cfe96631ae9cbf0ac9aa90d8a555c25b3d96c337889b6",
+   "size": 44667
+  },
+  {
+   "path": "js/apps-video.js",
+   "sha256": "d826b7257298b287aa4ea9cf19fabd816692d1164bf9e132dcce9063c7bd5aa6",
+   "size": 5767
+  },
+  {
+   "path": "js/apps-web.js",
+   "sha256": "8028ce1d3b8dfa69cff94b5f25e4929e547e72ee57829490016462b072303638",
+   "size": 4548
+  },
+  {
+   "path": "js/apps.js",
+   "sha256": "40b60c8a35740655fb3f0d3d892d4655f7b828684ad92e7146472e7de88955d9",
+   "size": 62849
+  },
+  {
+   "path": "js/build.js",
+   "sha256": "4222787267c51f7af0242e0b57f7d83adfdc8c2472f154c02ba7b1acf5f81a8e",
+   "size": 121
+  },
+  {
+   "path": "js/config.js",
+   "sha256": "99e2d3b9a13f18ad47c7ce36f36eddb8e15722d4620bcf6814837f4718e0e569",
+   "size": 1862
+  },
+  {
+   "path": "js/lib.js",
+   "sha256": "14254289e39e1979ebab43e05cfa483cae13ccb12dc6737afb1459b109dd18be",
+   "size": 11426
+  },
+  {
+   "path": "js/os.js",
+   "sha256": "01ba19e4c1cf778d8cfdd483ca3d9417371e74d63a89bb21734a75a25d0e488b",
+   "size": 60011
+  },
+  {
+   "path": "js/updates.js",
+   "sha256": "8b46cb3f95a2d0cebf04cebdd61c5b9ef66ee67abd647479161bee03e7b73677",
+   "size": 13342
+  },
+  {
+   "path": "manifest.json",
+   "sha256": "651a107bfbef82056bd82978876181f3832f618e95eeb16f0c5337a39aacc34c",
+   "size": 1333
+  },
+  {
+   "path": "privacy.html",
+   "sha256": "0e0e25224b346e7fb55597b647a396863b1415c2ea467d45404528ed60846c9a",
+   "size": 9950
+  },
+  {
+   "path": "sw.js",
+   "sha256": "b092ff64fbba41cbb67409df89dcfc0eade3903e4f1d37bcb2c81bb51ab32627",
+   "size": 2843
+  },
+  {
+   "path": "tube.html",
+   "sha256": "9600278c4991f18246b022acb026cb10d357c39e3415ce7ded8f63d763bda9d6",
+   "size": 87098
+  }
+ ]
+}
