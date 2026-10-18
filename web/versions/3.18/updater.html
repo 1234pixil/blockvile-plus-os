@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Blockvile Updater</title><meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="updater.webmanifest"><link rel="icon" href="icons/logo.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--fg:#0f172a;--mut:#64748b;--ac:#0ea5e9}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#162033;--fg:#f1f5f9;--mut:#94a3b8}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px system-ui,sans-serif;padding:16px;max-width:560px;margin:auto}
+h1{font-size:22px;margin:8px 0 14px}.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px}
+.hero{text-align:center;background:linear-gradient(135deg,rgba(34,197,94,.2),rgba(14,165,233,.2))}.hero .i{font-size:44px}.hero h2{margin:4px 0}
+.mut{color:var(--mut);font-size:13px}button,a.b{border:0;border-radius:12px;background:var(--ac);color:#fff;font:600 15px system-ui;padding:10px 16px;cursor:pointer;text-decoration:none;display:inline-block}
+button.g,a.g{background:transparent;color:var(--ac);border:1px solid var(--ac)}button:disabled{opacity:.5}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-top:1px solid rgba(128,128,128,.2)}.row:first-child{border-top:0}
+.t{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:rgba(128,128,128,.2);font-style:normal}.er{color:#ef4444}
+</style></head><body>
+<h1>⬆️ Blockvile Updater</h1>
+<div id="app" class="card hero"><div class="i">⏳</div><h2>Checking…</h2></div>
+<div id="vers"></div>
+<div class="card" id="zipc"><b>Install from a zip</b>
+<p class="mut" style="margin:6px 0 10px">Choose a Blockvile website zip (for example the one you were sent) to install it on this device. It works offline and replaces what Blockvile shows until you remove it.</p>
+<input type="file" id="zf" accept=".zip,application/zip" hidden>
+<button id="zb">📦 Choose a zip…</button> <button class="g" id="zr" hidden>Remove uploaded version</button>
+<p id="zs" class="mut" style="margin:10px 0 0"></p></div>
+<p class="mut">This is a separate app for updating Blockvile Plus OS. Updates never install by themselves, and your apps, files and settings stay as they are.</p>
+<script>
+(function(){
+"use strict";
+var $=function(i){return document.getElementById(i)},esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})};
+var VER=/^\d+(\.\d+){0,3}$/;
+function cmp(a,b){var x=a.split(".").map(Number),y=b.split(".").map(Number);for(var i=0;i<Math.max(x.length,y.length);i++){var d=(x[i]||0)-(y[i]||0);if(d)return d<0?-1:1}return 0}
+function pin(){try{var p=JSON.parse(localStorage.getItem("bv:pin")||"null");return typeof p==="string"&&VER.test(p)?p:""}catch(e){return""}}
+function setPin(v){try{if(v)localStorage.setItem("bv:pin",JSON.stringify(v));else localStorage.removeItem("bv:pin")}catch(e){}}
+var list=[],err="",busy="",done="";
+function j(u){return fetch(u+"?t="+Date.now(),{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.json()})}
+function refreshCache(){
+  if(!navigator.serviceWorker)return Promise.resolve();
+  return navigator.serviceWorker.getRegistration().then(function(reg){var sw=reg&&(reg.active||navigator.serviceWorker.controller);if(!sw)return;
+    return new Promise(function(res){var t=setTimeout(res,25000);navigator.serviceWorker.addEventListener("message",function f(e){if(e.data==="bv-updated"||e.data==="bv-update-failed"){clearTimeout(t);navigator.serviceWorker.removeEventListener("message",f);res()}});sw.postMessage("bv-update")})});
+}
+function load(){
+  err="";draw();
+  j("version.json").then(function(cur){
+    return j("versions/index.json").catch(function(){return{versions:[{version:cur.version,build:cur.build,released:cur.released,notes:cur.notes}]}})
+  }).then(function(r){
+    list=(r.versions||[]).filter(function(v){return v&&VER.test(v.version)}).sort(function(a,b){return cmp(a.version,b.version)});draw()
+  }).catch(function(){err=navigator.onLine===false?"You're offline":"Couldn't reach the update server";draw()});
+}
+function use(v){
+  var latest=list[list.length-1];busy=v;done="";draw();
+  var go=latest&&v===latest.version;setPin(go?"":v);
+  (go?(window.caches?caches.delete(LOCAL):Promise.resolve()).then(function(){try{localStorage.removeItem("bv:localZip")}catch(e){}$("zr").hidden=true;zs("")}).then(refreshCache):Promise.resolve()).then(function(){busy="";done=go?"Blockvile is now on the latest version ("+v+").":"Blockvile will open on version "+v+".";draw()});
+}
+function draw(){
+  var p=pin(),latest=list[list.length-1],cur=p||(latest?latest.version:"");
+  var isLatest=latest&&cur===latest.version;
+  $("app").innerHTML='<div class="i">'+(err?"⚠️":busy?"⏳":isLatest?"✅":"⬆️")+'</div><h2>'+(err?"Couldn't check":busy?"Working…":!latest?"Checking…":isLatest?"Blockvile is up to date":"Update available")+'</h2>'
+   +'<p class="mut">'+(err?esc(err):done?esc(done):latest?"Blockvile opens on version "+esc(cur)+(isLatest?"":" · latest is "+esc(latest.version)):"")+'</p>'
+   +(latest&&!isLatest&&!busy?'<button id="up">Update now to '+esc(latest.version)+'</button> ':"")+(!busy&&!err?'<button class="g" id="ck">Check for updates</button> ':"")
+   +'<a class="b g" href="'+(p?"versions/"+esc(p)+"/index.html":"index.html")+'">Open Blockvile</a> '+(err?'<button class="g" id="re">Try again</button>':"");
+  var u=$("up");if(u)u.onclick=function(){use(latest.version)};var ck=$("ck");if(ck)ck.onclick=load;var re=$("re");if(re)re.onclick=load;
+  $("vers").innerHTML=list.length?'<div class="card"><b>Versions</b><div style="margin-top:6px">'+list.slice().reverse().map(function(v,i){
+    var tag=v.version===cur?"Chosen":i===0?"Latest":cmp(v.version,cur)<0?"Older":"Newer";
+    return '<div class="row"><span><b>'+esc(v.version)+'</b> <em class="t">'+tag+'</em><br><span class="mut">'+esc(v.released||"")+(v.notes&&v.notes[0]?" · "+esc(String(v.notes[0])):"")+'</span></span>'+(v.version===cur||busy?"":'<button class="g" data-v="'+esc(v.version)+'">'+(cmp(v.version,cur)<0?"Switch back":"Use")+'</button>')+'</div>'}).join("")+'</div></div>':"";
+  Array.prototype.forEach.call(document.querySelectorAll("[data-v]"),function(b){b.onclick=function(){use(b.getAttribute("data-v"))}});
+}
+
+/* ---- install from a zip (web only; saved in a separate cache that the service worker serves first) ---- */
+var LOCAL="blockvile-local",SKIP={"sw.js":1,"updater.html":1,"updater.webmanifest":1};
+var TYPES={html:"text/html",js:"application/javascript",css:"text/css",json:"application/json",svg:"image/svg+xml",png:"image/png",jpg:"image/jpeg",jpeg:"image/jpeg",webp:"image/webp",ico:"image/x-icon",webmanifest:"application/manifest+json",txt:"text/plain"};
+function zs(t,bad){$("zs").textContent=t;$("zs").className=bad?"er":"mut"}
+function inflate(u8){var ds=new DecompressionStream("deflate-raw"),w=ds.writable.getWriter();w.write(u8);w.close();return new Response(ds.readable).arrayBuffer()}
+function hex(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return("0"+x.toString(16)).slice(-2)}).join("")}
+async function unzip(buf){
+  var dv=new DataView(buf),u8=new Uint8Array(buf),i=buf.byteLength-22,lim=Math.max(0,buf.byteLength-66000);
+  while(i>=lim&&dv.getUint32(i,true)!==0x06054b50)i--;
+  if(i<lim)throw new Error("That isn't a zip file");
+  var n=dv.getUint16(i+10,true),off=dv.getUint32(i+16,true),ents=[],td=new TextDecoder();
+  if(n>600)throw new Error("Too many files for a Blockvile zip");
+  for(var k=0;k<n;k++){
+    if(dv.getUint32(off,true)!==0x02014b50)throw new Error("The zip looks damaged");
+    var m=dv.getUint16(off+10,true),cs=dv.getUint32(off+20,true),us=dv.getUint32(off+24,true),nl=dv.getUint16(off+28,true),el=dv.getUint16(off+30,true),cl=dv.getUint16(off+32,true),lh=dv.getUint32(off+42,true);
+    var name=td.decode(u8.subarray(off+46,off+46+nl));off+=46+nl+el+cl;
+    if(name.slice(-1)==="/"||name.indexOf("__MACOSX")===0||name.indexOf("/.")>=0)continue;
+    ents.push({name:name,m:m,cs:cs,us:us,lh:lh});
+  }
+  return{ents:ents,read:async function(e){
+    var nl2=dv.getUint16(e.lh+26,true),el2=dv.getUint16(e.lh+28,true),st=e.lh+30+nl2+el2,raw=u8.subarray(st,st+e.cs);
+    if(e.m===0)return raw.slice().buffer;if(e.m!==8)throw new Error("Unsupported zip type");
+    if(typeof DecompressionStream==="undefined")throw new Error("This browser can't open zips here");
+    return inflate(raw)}};
+}
+async function installZip(file){
+  zs("Reading the zip…");
+  if(!window.caches)throw new Error("This browser can't save files for offline use");
+  if(file.size>40e6)throw new Error("That zip is too big");
+  var z=await unzip(await file.arrayBuffer()),pre=null;
+  z.ents.forEach(function(e){if(/(^|\/)index\.html$/.test(e.name)){var p=e.name.slice(0,-10);if(pre===null||p.length<pre.length)pre=p}});
+  if(pre===null||!z.ents.some(function(e){return e.name===pre+"version.json"}))throw new Error("That doesn't look like a Blockvile website zip");
+  var ents=z.ents.filter(function(e){var r=e.name.slice(pre.length);return e.name.indexOf(pre)===0&&r&&r.indexOf("..")<0&&r.charAt(0)!=="/"&&r.indexOf("\\")<0&&!SKIP[r]});
+  var total=0;ents.forEach(function(e){total+=e.us});if(total>30e6)throw new Error("That zip is too big");
+  var data={};for(var k=0;k<ents.length;k++){zs("Unpacking "+(k+1)+" of "+ents.length+"…");data[ents[k].name.slice(pre.length)]=await z.read(ents[k])}
+  var vj=JSON.parse(new TextDecoder().decode(data["version.json"]));
+  if(!VER.test(vj.version||"")||!/^[a-f0-9]{12}$/.test(vj.build||""))throw new Error("The zip's version file is wrong");
+  if(window.crypto&&crypto.subtle&&Array.isArray(vj.files)){
+    for(var f=0;f<vj.files.length;f++){var q=vj.files[f];if(SKIP[q.path])continue;if(!data[q.path])throw new Error("The zip is missing "+q.path);
+      if(hex(await crypto.subtle.digest("SHA-256",data[q.path]))!==String(q.sha256).toLowerCase())throw new Error("A file in the zip doesn't match its checksum ("+q.path+")")}
+  }
+  zs("Saving…");
+  await caches.delete(LOCAL);var c=await caches.open(LOCAL);
+  var base=new URL(".",location.href).href;
+  for(var path in data){var ext=path.split(".").pop().toLowerCase(),h={"content-type":TYPES[ext]||"application/octet-stream"};
+    await c.put(base+path,new Response(data[path],{headers:h}));
+    if(path==="index.html")await c.put(base,new Response(data[path],{headers:h}))}
+  setPin("");try{localStorage.setItem("bv:localZip",JSON.stringify({version:vj.version,build:vj.build,date:new Date().toISOString()}))}catch(e){}
+  return vj.version;
+}
+function zdraw(){var L=null;try{L=JSON.parse(localStorage.getItem("bv:localZip")||"null")}catch(e){}
+  $("zr").hidden=!L;if(L&&!$("zs").textContent)zs("Uploaded version "+L.version+" is installed on this device.")}
+$("zb").onclick=function(){$("zf").click()};
+$("zf").onchange=function(){var f=$("zf").files[0];if(!f)return;$("zb").disabled=true;
+  installZip(f).then(function(v){zs("✅ Installed Blockvile "+v+". Tap Open Blockvile to use it.");$("zr").hidden=false}).catch(function(e){zs("⚠️ "+(e&&e.message||"Couldn't install that zip"),true)}).then(function(){$("zb").disabled=false;$("zf").value=""})};
+$("zr").onclick=function(){caches.delete(LOCAL).then(function(){try{localStorage.removeItem("bv:localZip")}catch(e){}$("zr").hidden=true;zs("Removed. Blockvile uses the website's version again.")})};
+zdraw();
+load();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
+})();
+</script></body></html>
