@@ -1,8 +1,8 @@
 // Blockvile Plus OS — offline support for the installed app.
-// Pages and files are served from the cache straight away and refreshed in the background.
-const C = "blockvile-plus-v22";
+// Pages and files come from the website first (so updates show immediately) and from the saved copy when offline or slow.
+const C = "blockvile-plus-v25";
 const FILES = ["./", "index.html", "blockvile-plus-os.html", "privacy.html", "updater.html", "updater.webmanifest", "manifest.json", "css/style.css",
-  "js/build.js", "js/config.js", "js/lib.js", "js/android.js", "js/apps.js", "js/apps-media.js", "tube.html", "js/apps-web.js", "js/apps-store.js", "js/apps-video.js", "js/apps-help.js", "js/accounts.js", "js/updates.js", "js/apps-sim-ai.js", "js/os.js",
+  "js/build.js", "js/config.js", "js/debug-core.js", "js/apps-debug.js", "js/lib.js", "js/android.js", "js/apps.js", "js/apps-media.js", "tube.html", "js/apps-web.js", "js/apps-store.js", "js/apps-video.js", "js/apps-help.js", "js/accounts.js", "js/updates.js", "js/apps-sim-ai.js", "js/os.js",
   "icons/logo.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png"];
 
 self.addEventListener("install", e => e.waitUntil(
@@ -33,13 +33,17 @@ self.addEventListener("fetch", e => {
     const mine = await lc.match(req, { ignoreSearch: req.mode === "navigate" });   // a zip installed from the Updater wins
     if (mine) return mine;
     return caches.open(C).then(async cache => {
+    // Network first (so a new version shows straight away, even on phones), the saved copy only when offline or very slow
     const hit = await cache.match(req, { ignoreSearch: req.mode === "navigate" });
-    const fresh = fetch(req).then(r => { if (r.ok) cache.put(req, r.clone()); return r; }).catch(() => null);
-    if (hit) { e.waitUntil(fresh); return hit; }
-    const r = await fresh;
-    if (r) return r;
-    if (req.mode === "navigate") return (await cache.match("index.html")) || (await cache.match("blockvile-plus-os.html")) || Response.error();
-    return Response.error();
+    const net = fetch(req, { cache: "no-cache" }).then(r => { if (r.ok) cache.put(req, r.clone()); return r; });
+    try {
+      return await (hit ? Promise.race([net, new Promise((_, no) => setTimeout(no, 4000))]) : net);
+    } catch {
+      e.waitUntil(net.catch(() => { }));
+      if (hit) return hit;
+      if (req.mode === "navigate") return (await cache.match("index.html")) || (await cache.match("blockvile-plus-os.html")) || Response.error();
+      return Response.error();
+    }
     });
   }));
 });
