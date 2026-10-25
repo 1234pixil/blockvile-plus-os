@@ -1,6 +1,6 @@
 // Blockvile Plus OS — offline support for the installed app.
 // Pages and files come from the website first (so updates show immediately) and from the saved copy when offline or slow.
-const C = "blockvile-plus-v28";
+const C = "blockvile-plus-v29";
 const FILES = ["./", "index.html", "blockvile-plus-os.html", "privacy.html", "updater.html", "updater.webmanifest", "manifest.json", "css/style.css",
   "js/build.js", "js/config.js", "js/debug-core.js", "js/apps-debug.js", "js/lib.js", "js/android.js", "js/apps.js", "js/apps-media.js", "tube.html", "gamecenter.html", "js/games-catalog.js", "js/apps-games.js", "js/apps-publisher.js", "games/bedwars.html", "games/skybedwars.html", "games/tidebreaker.html", "games/defense.html", "games/obby.html", "games/buttondash.html", "games/blockhop.html", "games/coincatcher.html", "games/memory.html", "games/snake.html", "js/apps-web.js", "js/apps-store.js", "js/apps-video.js", "js/apps-help.js", "js/accounts.js", "js/updates.js", "js/apps-sim-ai.js", "js/os.js",
   "icons/logo.svg", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png"];
